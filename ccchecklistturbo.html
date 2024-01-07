@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Surgical Safety Checklist</title>
+  <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Rubik:300,400,500">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+<link rel="stylesheet" href="./ccchecklistturbo.css">
+
+<style>
+.turbo-overlay {
+  display: none; /* Initially hidden */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+    z-index: 1000; /* Ensures it's on top of other elements */
+    text-align: center;
+    color: white;
+    padding: 40px; /* Added padding on all sides */
+    box-sizing: border-box; /* Ensures padding is included in width/height */
+    font-size: 1.25em; /* Larger font size */
+    word-wrap: break-word; /* Ensures text wraps */
+    margin-bottom: 20px; /* Space between question and buttons */
+}
+
+.close-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  color: rgb(30, 30, 30);
+  font-size: 20px;
+}
+
+.question-container {
+  height: 500px; /* Adjust this value based on your needs */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.overlay-question {
+  /* Ensure the question text fits well within the container */
+  font-size: 2.0em; /* Larger font size */
+  word-wrap: break-word; /* Ensures text wraps */
+  margin-bottom: 20px; /* Space between question and buttons */
+  overflow-y: auto; /* Allows scrolling if the text is too long */
+  height: 100%; /* Adjust this value to allocate space for the question */
+}
+
+.response-button {
+  /* Common styles for response buttons */
+  cursor: pointer;
+  padding: 10px;
+  margin: 5px;
+}
+
+
+.response-button-container {
+    display: flex;
+    justify-content: center;
+    max-width: 400px; /* Constrain the width */
+    margin: 0 auto; /* Center the container */
+    gap: 20px; /* Spacing between buttons */
+}
+
+.yes-button {
+    font-size: 32px; /* Slightly larger font size */
+    padding: 45px 45px; /* Larger padding for a bigger button */
+    border-radius: 25px; /* Rounded corners */
+    background-color: rgba(233, 233, 233, 0.75);
+    color: #5332f8; /* Color matching the border */
+    box-shadow: 0 4px 6px rgba(33, 16, 118, 0.11), 0 1px 3px rgba(33, 16, 118, 0.1);
+    border: 1px solid #5332f8;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.no-button {
+    font-size: 32px;
+    padding: 10px 20px; /* Smaller padding for a smaller button */
+    border-radius: 20px; /* Rounded corners */
+    background-color: rgba(233, 233, 233, 0.75);
+    color: #5332f8; /* Color matching the border */
+    box-shadow: 0 4px 6px rgba(33, 16, 118, 0.11), 0 1px 3px rgba(33, 16, 118, 0.1);
+    border: 1px solid #5332f8;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.yes-button:hover, .no-button:hover {
+    box-shadow: 0 6px 8px rgba(33, 16, 118, 0.15), 0 2px 4px rgba(33, 16, 118, 0.12);
+    transform: translateY(-5px);
+}
+
+.yes-button:active, .no-button:active {
+    box-shadow: 0 2px 3px rgba(33, 16, 118, 0.1);
+    transform: translateY(5px);
+}
+
+</style>
+
+
+</head>
+
+<body>
+
+<header>
+
+
+note: reduce spacing in turbo mode.
+
+  
+ <h1 class="title"><a href="https://www.clinicchecklist.com">Surgical Safety Checklist</a></h1>
+ <div class="progress">
+  <span class="progress__count">0/X</span>
+  <input class="progress__reset" type="reset" value="Reset" title="Reset Checkboxes" tabindex="0">
+
+  <button class="progress__reset" id="turboModeButton">SUPER FAST Mode</button>
+
+  <div id="turboModeOverlay" class="turbo-overlay hidden">
+
+      Super Fast TURBO Mode is ON
+      <br>
+      <div id="questionContainer" class="question-container">
+        <p id="overlayQuestion" class="overlay-question"></p>
+        <button id="yesButton" class="response-button yes-button">Yes</button>
+        <button id="noButton" class="response-button no-button">No</button>
+      </div>
+
+      <button class="close-overlay" id="closeOverlayButton">X</button>
+  </div>
+
+  
+  
+  <script>
+   document.addEventListener('DOMContentLoaded', function() {
+  // ... existing code ...
+
+  const questions = document.querySelectorAll('.checklist-item__title');
+  let currentQuestionIndex = 0;
+
+  document.getElementById('turboModeButton').onclick = function() {
+    document.getElementById('turboModeOverlay').style.display = 'block';
+    showNextQuestion(0);
+  };
+
+  document.getElementById('closeOverlayButton').onclick = function() {
+    document.getElementById('turboModeOverlay').style.display = 'none';
+  };
+
+  document.getElementById('yesButton').onclick = function() {
+    recordAnswer(true);
+    showNextQuestion(currentQuestionIndex + 1);
+  };
+
+  document.getElementById('noButton').onclick = function() {
+    recordAnswer(false);
+    showNextQuestion(currentQuestionIndex + 1);
+  };
+
+  function showNextQuestion(index) {
+    if (index >= questions.length) {
+      document.getElementById('turboModeOverlay').style.display = 'none';
+      return;
+    }
+    document.getElementById('overlayQuestion').textContent = questions[index].textContent;
+    currentQuestionIndex = index;
+  }
+
+  function recordAnswer(answer) {
+    let correspondingCheckbox = questions[currentQuestionIndex].previousElementSibling.previousElementSibling;
+    correspondingCheckbox.checked = answer;
+    updateProgress(); // Call this function to update the progress tally
+}
+
+  function updateProgress() {
+      const totalCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]').length;
+      const checkedCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+      document.querySelector('.progress__count').textContent = `${checkedCheckboxes}/${totalCheckboxes}`;
+  }
+});
+
+
+  </script>
+
+  
+
+  <span class="progress__border"></span>
+  <span class="progress__bar"></span>
+  
+  
+ 
+ </div>
+
+
+
+</header>
+<div class="container">
+ <section class="checklist">
+  <h2 class="checklist__title">Before induction of anaesthesia</h2>
+  <span class="checklist__title-border"></span>
+  <span class="checklist__percentage-border"></span>
+  <ul class="checklist-container">
+ 
+   </li>
+     <!-- Before induction of anaesthesia -->
+     <li class="checklist-item">
+        <input id="question1" type="checkbox" /><label for="question1" class="checkbox"></label><span class="checklist-item__title">1. Has the patient confirmed his/her identity, site, procedure, and consent?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Ensuring patient identity and informed consent are fundamental to patient safety and surgical accuracy.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question2" type="checkbox" /><label for="question2" class="checkbox"></label><span class="checklist-item__title">2. Is the site marked?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Marking the site of surgery helps prevent wrong-site surgeries, a critical aspect of patient care.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question3" type="checkbox" /><label for="question3" class="checkbox"></label><span class="checklist-item__title">3. Is the anaesthesia machine and medication check complete?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Checking anesthesia equipment and medications reduces the risk of equipment failure and drug-related complications.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question4" type="checkbox" /><label for="question4" class="checkbox"></label><span class="checklist-item__title">4. Is the pulse oximeter on the patient and functioning?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          The pulse oximeter monitors oxygen saturation, a vital sign during anesthesia and surgery.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question5" type="checkbox" /><label for="question5" class="checkbox"></label><span class="checklist-item__title">5. Does the patient have a known allergy?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Identifying allergies prevents adverse reactions to medications or materials used during surgery.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question6" type="checkbox" /><label for="question6" class="checkbox"></label><span class="checklist-item__title">6. Does the patient have a difficult airway or aspiration risk?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Awareness of airway and aspiration risks guides anesthesia strategies to ensure patient safety.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question7" type="checkbox" /><label for="question7" class="checkbox"></label><span class="checklist-item__title">7. Is there a risk of >500ml blood loss (7ml/kg in children)?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Anticipating significant blood loss allows the team to prepare for potential transfusions and manage patient hemodynamics effectively.
+         </div>
+        </div>
+       </li>
+       
+
+ </section>
+ <section class="checklist">
+  <h2 class="checklist__title">Before skin incision</h2>
+  <span class="checklist__title-border"></span>
+  <span class="checklist__percentage-border"></span>
+  <ul class="checklist-container">
+    <!-- Before skin incision -->
+    <li class="checklist-item">
+        <input id="question8" type="checkbox" /><label for="question8" class="checkbox"></label><span class="checklist-item__title">8. Confirm all team members have introduced themselves by name and role.</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Introductions enhance team communication and collaboration, which are crucial for surgical safety.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question9" type="checkbox" /><label for="question9" class="checkbox"></label><span class="checklist-item__title">9. Confirm the patient’s name, procedure, and where the incision will be made.</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Reconfirming these details helps prevent errors and ensures the right patient is undergoing the correct procedure.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question10" type="checkbox" /><label for="question10" class="checkbox"></label><span class="checklist-item__title">10. Has antibiotic prophylaxis been given within the last 60 minutes?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Timely antibiotic administration is key to preventing surgical site infections.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question11" type="checkbox" /><label for="question11" class="checkbox"></label><span class="checklist-item__title">11. To Surgeon: What are the critical or non-routine steps?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Discussing critical steps prepares the team for complex or unusual aspects of the surgery.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question12" type="checkbox" /><label for="question12" class="checkbox"></label><span class="checklist-item__title">12. To Surgeon: How long will the case take?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Estimating the duration helps in planning and resource allocation for the surgery.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question13" type="checkbox" /><label for="question13" class="checkbox"></label><span class="checklist-item__title">13. To Surgeon: What is the anticipated blood loss?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Anticipating blood loss allows for better preparation, including arranging for blood transfusions if necessary.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question14" type="checkbox" /><label for="question14" class="checkbox"></label><span class="checklist-item__title">14. To Anaesthetist: Are there any patient-specific concerns?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Identifying patient-specific concerns allows the anaesthetist to adjust the anesthesia plan accordingly.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question15" type="checkbox" /><label for="question15" class="checkbox"></label><span class="checklist-item__title">15. To Nursing Team: Has sterility (including indicator results) been confirmed?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Confirming sterility is essential to prevent infections and maintain a safe surgical environment.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question16" type="checkbox" /><label for="question16" class="checkbox"></label><span class="checklist-item__title">16. To Nursing Team: Are there equipment issues or any concerns?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Addressing equipment issues before the procedure begins is crucial to avoid disruptions and maintain safety.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question17" type="checkbox" /><label for="question17" class="checkbox"></label><span class="checklist-item__title">17. Is essential imaging displayed?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Displaying essential imaging ensures that the surgical team has all necessary information readily available during the procedure.
+         </div>
+        </div>
+       </li>
+           
+  </ul>
+ </section>
+
+
+ <section class="checklist">
+  <h2 class="checklist__title">Before patient leaves operating room</h2>
+  <span class="checklist__title-border"></span>
+  <span class="checklist__percentage-border"></span>
+  <ul class="checklist-container">
+    <!-- Before patient leaves operating room -->
+    <li class="checklist-item">
+        <input id="question18" type="checkbox" /><label for="question18" class="checkbox"></label><span class="checklist-item__title">18. Nurse Verbally Confirms: The name of the procedure.</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          This verbal confirmation helps ensure the accuracy and completeness of the surgical procedure.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question19" type="checkbox" /><label for="question19" class="checkbox"></label><span class="checklist-item__title">19. Nurse Verbally Confirms: Completion of instrument, sponge, and needle counts.</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Accurate counts prevent the retention of surgical items in the patient, a critical safety measure.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question20" type="checkbox" /><label for="question20" class="checkbox"></label><span class="checklist-item__title">20. Nurse Verbally Confirms: Specimen labelling (read specimen labels aloud including patient name).</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Correct specimen labeling ensures accurate identification and diagnosis post-surgery.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question21" type="checkbox" /><label for="question21" class="checkbox"></label><span class="checklist-item__title">21. Nurse Verbally Confirms: Whether there are any equipment problems to be addressed.</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Identifying and addressing equipment issues before leaving the operating room is essential for patient safety and future surgical procedures.
+         </div>
+        </div>
+       </li>
+       <li class="checklist-item">
+        <input id="question22" type="checkbox" /><label for="question22" class="checkbox"></label><span class="checklist-item__title">22. To Surgeon, Anaesthetist, and Nurse: What are the key concerns for recovery and management of this patient?</span>
+        <button class="checklist-item__expand" aria-label="Toggle Info" title="Toggle More Information">
+         <span class="line"></span>
+        </button>
+        <div class="info-container">
+         <div class="info">
+          Discussing key concerns for recovery and patient management post-surgery ensures continuity of care and prepares the team for potential complications.
+         </div>
+        </div>
+       </li>
+  </ul>
+ </section>
+ 
+</div>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
+</body>
+</html>

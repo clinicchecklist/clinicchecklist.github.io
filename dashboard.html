@@ -1,0 +1,2138 @@
+<!doctype html>
+<html lang="en">
+	<!-- Added default theme = dark theme (Alfred)-->
+	<html lang="en" data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<title>Clinic Checklist Dashboard</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="output.css" rel="stylesheet" />
+		
+		<style>
+			@media (prefers-color-scheme: dark) {
+    		tr {
+        	color: black;
+ 		   	}
+			}
+
+			.top-banner {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				z-index: 100; /* High z-index to keep it above other content */
+				background-color: #fff; /* Or any color you prefer */
+				/* Add more styles as needed (padding, box-shadow, etc.) */
+			}
+			.bottom-banner {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background-color: rgba(181, 226, 199, 0.7); 
+				z-index: 1000; /* Ensure it's above other content */
+				padding: 10px; /* Adjust as needed */
+				text-align: center; /* For centering the content */
+				box-shadow: 0 -2px 4px rgba(213, 123, 123, 0.2); /* Slight shadow for depth */
+				border-top: 1px solid rgba(221, 97, 97, 0.2); /* Subtle top border */
+				}
+
+			.bottom-logo {
+				max-height: 2rem; /* Maximum logo height */
+				width: auto; /* Maintain aspect ratio */
+				display: inline-block; /* Aligns image properly */
+				}
+
+			/* Adjust body padding to prevent content from being hidden */
+			body {
+				padding-top: 60px; /* Adjust this value based on the height of your top banner */
+				padding-bottom: 60px; /* Height of the bottom banner */
+			}
+
+			/* Add Padding and a Negative Margin to Your Sections */
+			.anchor-target {
+			padding-top: 100px; /* Height of your fixed header */
+			margin-top: -100px; /* Negative value of the above padding */
+			}
+
+			html {
+				font-size: 16px
+			}
+
+		
+		.action-link {
+				text-decoration: none;
+				color: rgb(7, 27, 251);
+			}
+
+			.action-link:hover {
+				cursor: pointer;
+				text-decoration: underline;
+			}
+
+			.table-menu-bar {
+				display: flex;
+				justify-content: space-between;
+				margin-bottom: 10px;
+			}
+
+			/* Style menu bar buttons */
+	
+			.table-menu-bar button {
+			}
+
+			.table-menu-bar {
+				display: flex;
+				justify-content: start;
+				gap: 10px;
+				margin-bottom: 20px;
+				background-color: #808080;
+  				border: none;
+  				border-radius: 5px;
+  				padding: 5px 20px;
+  				font-size: 16px;
+				font-weight: 400;
+				cursor: pointer;
+  				transition: background-color 0.3s ease;
+				}
+
+			.table-menu-bar button {
+				background-color: #f5f5f5;
+				color: rgb(0, 0, 0);
+				border: none;
+				border-radius: 5px;
+				padding: 3px 20px;
+				font-size: 16px;
+				cursor: pointer;
+				transition: background-color 0.3s ease;
+				}
+
+			.table-menu-bar button:hover {
+			background-color: #c9c9c9;
+			}
+
+			/* /Style menu bar buttons */
+
+			/* Hide the search bar on mobile devices */
+
+			@media (max-width: 768px) {
+				.flex.items-center.gap-5 .input-sm {
+					display: none;
+				}
+			}
+
+			/* Optional: Explicitly show the search bar on desktop */
+			@media (min-width: 769px) {
+				.flex.items-center.gap-5 .input-sm {
+					display: block; /* or 'flex' or 'inline-block', depending on your layout */
+				}
+			}
+			/* /Hide the search bar on mobile devices */
+
+			.force-black-text {
+			color: black !important;
+			}
+
+		</style>
+
+		<style>
+			#table-pagination {
+				text-align: right; /* Aligns content to the right */
+				padding-right: 1rem; /* Adds padding on the right */
+			}
+		</style>
+		
+		
+		<!-- chart library -->
+		<script
+			type="module"
+			src="https://cdn.jsdelivr.net/npm/@weblogin/trendchart-elements@1.1.0/dist/index.js/+esm"
+			async>
+		</script>
+		<!-- svg loader for icons -->
+		<script
+			src="https://cdn.jsdelivr.net/npm/external-svg-loader@1.6.10/svg-loader.min.js"
+			async></script>
+		<!-- theme switcher script (Alfred)-->
+		
+		<script>
+			function toggleTheme() {
+			const html = document.documentElement;
+			const mainLogo = document.getElementById('logo');
+			const sidebarLogo = document.getElementById('sidebar-logo');
+
+			if (html.getAttribute('data-theme') === 'dark') {
+				html.setAttribute('data-theme', 'light');
+				mainLogo.src = 'images/logo/clinic_checklist_logo.png'; // Light theme main logo
+				sidebarLogo.src = 'images/logo/clinic_checklist_logo.png'; // Light theme sidebar logo
+			} else {
+				html.setAttribute('data-theme', 'dark');
+				mainLogo.src = 'images/logo/clinic_checklist_logo_dark.png'; // Dark theme main logo
+				sidebarLogo.src = 'images/logo/clinic_checklist_logo_dark.png'; // Dark theme sidebar logo
+			}
+		}
+		</script>
+
+		<script>
+			function showSection(sectionId) {
+				// Hide all sections first
+				const sections = document.querySelectorAll('.anchor-target');
+				sections.forEach(section => {
+					section.style.display = 'none';
+				});
+
+				// Show the selected section
+				const selectedSection = document.getElementById(sectionId);
+				if (selectedSection) {
+					selectedSection.style.display = 'grid';
+				}
+
+				// Remove active class from all menu items
+				document.querySelectorAll('.menu a').forEach(item => {
+					item.classList.remove('active');
+				});
+
+				// Add active class to the clicked menu item
+				event.currentTarget.classList.add('active');
+											
+			}
+		</script>
+
+		<script>
+			document.querySelectorAll('.info-icon').forEach(item => {
+			item.addEventListener('click', function() {
+				let tooltip = this.nextElementSibling;
+				if (tooltip.style.visibility === "visible") {
+					tooltip.style.visibility = "hidden";
+					tooltip.style.opacity = 0;
+				} else {
+					tooltip.style.visibility = "visible";
+					tooltip.style.opacity = 1;
+				}
+			});
+			});
+
+		</script>
+
+		<!-- Pagination for Tables-->
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				const rowsPerPageSelect = document.getElementById('rows-per-page');
+				const prevPageButton = document.getElementById('prev-page');
+				const nextPageButton = document.getElementById('next-page');
+				const tableInfo = document.getElementById('table-info');
+				const table = document.querySelector('table'); // Replace with your specific table selector
+				let currentPage = 1;
+				let rowsPerPage = parseInt(rowsPerPageSelect.value);
+
+				function updateTable() {
+					const allRows = table.querySelectorAll('tbody tr');
+					const totalRows = allRows.length;
+					const startRow = (currentPage - 1) * rowsPerPage;
+					const endRow = startRow + rowsPerPage;
+					const maxPage = Math.ceil(totalRows / rowsPerPage);
+
+					// Hide all rows
+					allRows.forEach(row => row.style.display = 'none');
+
+					// Show only rows for current page
+					for (let i = startRow; i < endRow && i < totalRows; i++) {
+						allRows[i].style.display = '';
+					}
+
+					// Update info text
+					tableInfo.textContent = `${startRow + 1}–${Math.min(endRow, totalRows)} of ${totalRows}`;
+
+					// Enable/disable buttons
+					prevPageButton.disabled = currentPage === 1;
+					nextPageButton.disabled = currentPage === maxPage;
+				}
+
+				// Event listeners
+				rowsPerPageSelect.addEventListener('change', function() {
+					rowsPerPage = parseInt(this.value);
+					currentPage = 1; // Reset to first page
+					updateTable();
+				});
+
+				prevPageButton.addEventListener('click', function() {
+					if (currentPage > 1) {
+						currentPage--;
+						updateTable();
+					}
+				});
+
+				nextPageButton.addEventListener('click', function() {
+					const totalRows = table.querySelectorAll('tbody tr').length;
+					if (currentPage < Math.ceil(totalRows / rowsPerPage)) {
+						currentPage++;
+						updateTable();
+					}
+				});
+
+				// Initial table update
+				updateTable();
+			});
+
+		</script>
+		<!-- /Pagination for Tables-->
+
+	</head>
+
+	
+		<!-- drawer -->
+		<body class="drawer min-h-screen bg-base-200 lg:drawer-open">
+	    
+	    <div class="top-banner">
+
+			Top Banner - don't know how to move the header bar into this and format properly.
+			
+
+			
+
+		</div>
+
+		<!-- Drawer Toggle -->
+		<input id="my-drawer" type="checkbox" class="drawer-toggle" />
+		<!-- dashboard content -->
+		<main class="drawer-content">
+					
+			<!-- header -->
+			<header class="col-span-12 flex justify-between lg:gap-4">
+				<!-- Mobile Menu Button and Logo -->
+				<div class="flex items-center gap-2">
+					<label for="my-drawer" class="btn btn-square btn-ghost drawer-button lg:hidden">
+						<svg data-src="https://unpkg.com/heroicons/20/solid/bars-3.svg" class="h-5 w-5"></svg>
+					</label>
+					<div class="grow lg:hidden">
+						<img id="logo" src="images/logo/clinic_checklist_logo.png" alt="Clinic Checklist Logo" style="width: 250px;">
+					</div>
+				</div>
+
+				<!-- Right Aligned Elements -->
+				<div class="flex items-center gap-5">
+    <div>
+        <input
+            type="text"
+            placeholder="Search"
+            class="input input-sm rounded-full max-sm:w-24" />
+    </div>
+				<!-- dropdown -->
+				<div class="dropdown dropdown-end z-10">
+					<div tabindex="0" class="btn btn-circle btn-ghost">
+						<div class="indicator">
+							<span class="badge indicator-item badge-error badge-xs"></span>
+							<svg data-src="https://unpkg.com/heroicons/20/solid/bell.svg" class="h-5 w-5"></svg>
+						</div>
+					</div>
+					<ul
+						tabindex="0"
+						class="menu dropdown-content mt-3 w-80 rounded-box bg-base-100 p-2 shadow-2xl">
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?1" />
+									</div>
+								</div>
+								<span>
+									<b>New message</b>
+									<br />
+									Alice: Hi, did you get my files?
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?2" />
+									</div>
+								</div>
+								<span>
+									<b>Reminder</b>
+									<br />
+									Your meeting is at 10am
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?3" />
+									</div>
+								</div>
+								<span>
+									<b>New payment</b>
+									<br />
+									Received $2500 from John Doe
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?4" />
+									</div>
+								</div>
+								<span>
+									<b>New payment</b>
+									<br />
+									Received $1900 from Alice
+								</span>
+							</a>
+						</li>
+					</ul>
+				</div>
+				<!-- /dropdown -->
+				<!-- dropdown -->
+				<div class="dropdown-end dropdown z-10">
+					<div tabindex="0" class="avatar btn btn-circle btn-ghost">
+						<div class="w-10 rounded-full">
+							<img src="https://picsum.photos/80/80?5" />
+						</div>
+					</div>
+					<ul
+						tabindex="0"
+						class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow-2xl">
+						<li>
+							<a>Profile</a>
+						</li>
+						<li>
+							<a>
+								Inbox
+								<span class="badge badge-success">12</span>
+							</a>
+						</li>
+						<li><a>Settings</a></li>
+						<li><a>Logout</a></li>
+					</ul>
+				</div>
+				<!-- /dropdown -->
+			</header>
+			<!-- /header -->
+
+
+			<!-- NavSection: Dashboard - Subsection: Summary -->
+			<div id="dashboardSection" class="grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-12 lg:p-10 anchor-target">
+				<div class="col-span-12 lg:col-span-6"> <!-- Adjust col-span as needed -->
+					<h2 class="text-xl font-bold">
+						<span style="color: grey;">Demo Workspace ></span> Dashboard > Summary
+					</h2>
+				</div>
+			
+			<!-- card -->
+			<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm gap-y-12 section-border">
+				<div class="card-body grow-0">
+					<div class="flex justify-between gap-2">
+						<h2 class="card-title grow">
+							<a class="link-hover link">Recent Checklists</a>
+						</h2>
+						<a href="ccchecklistturbo.html">
+						<button class="btn btn-sm">Run Selected</button>
+					</div>
+				</div>
+				<div class="overflow-x-auto">
+				
+					<table class="table table-zebra force-black-text">
+						<thead class="force-black-text">
+							<tr style="background-color: #E2E8F0;">
+								<th style="padding: 0.5rem;">Select</th>
+								<th style="padding: 0.5rem;">Status</th>
+								<th style="padding: 0.5rem;" colspan="1">Form Name</th>
+								<th style="padding: 0.5rem;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+								<th style="padding: 0.5rem;">Facility</th>
+								<td style="padding: 0.5rem;">Room</td>
+								<td style="padding: 0.5rem;">Frequency</td>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Data Row -->								
+							<tr style="background-color: #cef2d9;">
+								<td class="w-0"><input type="checkbox" class="checkbox" /></td>								<td style="padding: 0.5rem;">
+								  <span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #38A169; border-radius: 9999px; font-weight: bold;">COMPLETE</span>
+								</td>
+								<td style="padding: 0.5rem;" colspan="2">X-ray Room Check + Inventory</td>
+								<!-- Remove one of the other data cells to keep the total count consistent -->
+								<td style="padding: 0.5rem;"><a class="link-hover link">Foothills</a></td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">X01</a></td>
+								<td style="padding: 0.5rem; font-weight: 650;">Daily</td>
+							</tr>
+							<tr style="background-color: #f0e4cb;">
+								<td class="w-0"><input type="checkbox" class="checkbox" /></td>								<td style="padding: 0.5rem;">
+									<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #EEBB32; border-radius: 9999px; font-weight: bold;">PRIORITY</span>
+									
+								</td>
+								<td style="padding: 0.5rem;" colspan="2">Ultrasound Facility Check</td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">Foothills</a></td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">U02</a></td>								<td style="padding: 0.5rem; font-weight: 650;">Weekly</td>
+							</tr>
+							<tr style="background-color: #eac2c2;">
+								<td class="w-0"><input type="checkbox" class="checkbox" /></td>								<td style="padding: 0.5rem;">
+									<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #EA4E43; border-radius: 9999px; font-weight: bold;">URGENT</span>
+								</td>
+								<td style="padding: 0.5rem;" colspan="2">Facility Safety Review</td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">Peter Lougheed</a></td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">Emergency</a></td>
+								<td style="padding: 0.5rem; font-weight: 650;">Monthly</td>
+							</tr>
+							<tr style="background-color: #b8cee3;">
+								<td class="w-0"><input type="checkbox" class="checkbox" /></td>								<td style="padding: 0.5rem;">
+									<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #0B85D1; border-radius: 9999px; font-weight: bold;">AD HOC</span>
+								</td>
+								<td style="padding: 0.5rem;" colspan="2">Ultrasound Probe Disinfection</td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">Rockyview Hospital</a></td>
+								<td style="padding: 0.5rem;"><a class="link-hover link">Reprocessing</a></td>
+								<td style="padding: 0.5rem; font-weight: 650;">Ad Hoc</td>
+							</tr>
+						</tbody>
+					</table>
+		
+				</div>
+	
+					<div id="table-pagination">
+						<span id="row-info">Rows per page:</span>
+						<select class="btn btn-sm" id="rows-per-page">
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+						<span id="table-info"></span>
+						<button class="btn btn-sm" id="prev-page">&lt;</button>
+						<button class="btn btn-sm" id="next-page">&gt;</button>
+					</div>
+			</section>
+			<!-- /card -->
+
+			<!-- card -->
+				<section class="card col-span-12 bg-primary text-primary-content shadow-sm xl:col-span-6 section-border">
+					<div class="card-body pb-0">
+						<h2 class="card-title">21,500 USD</h2>
+						<a class="link-hover link text-xs">Revenue report →</a>
+					</div>
+					<tc-column
+						class="h-full w-full p-4 pt-0 [--shape-color:oklch(var(--pc))]"
+						values="[12,10,12,4,13,16,14,10,12,11,17,18,16,17,20,14,15,13,12,14]"
+						min="0"
+						shape-radius="4"
+						shape-gap="4"></tc-column>
+				</section>
+				<!-- /card -->
+
+				<!-- Table Card -->
+			<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm xl:col-span-6 section-border">				<div class="card-body grow-0">
+				<h2 class="card-title">
+					<a class="link-hover link">Transactions</a>
+				</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table table-zebra force-black-text">
+					<thead class="force-black-text">
+						<tr style="background-color: #E2E8F0;">
+							<th style="padding: 0.5rem;">Status</th>
+							<th style="padding: 0.5rem;">Name</th>
+							<th style="padding: 0.5rem;">Date</th>
+							<th style="padding: 0.5rem;">Amount</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- First row - Light Red -->
+						<tr style="background-color: #ffcccc;"> <!-- Lighter shade of red -->
+							<td style="padding: 0.5rem;">
+								<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #38A169; border-radius: 9999px; font-weight: bold;">TEST</span>
+							</td>
+							<td style="padding: 0.5rem;">Cy Ganderton
+							<td style="padding: 0.5rem;">Feb 2nd</td>
+							<td style="padding: 0.5rem;">
+								<svg data-src="https://unpkg.com/heroicons/20/solid/calculator.svg" class="inline-block h-5 w-5"></svg>
+								180 USD
+							</td>
+						</tr>
+						<!-- Second row - Light Green -->
+						<tr style="background-color: #ccffcc;"> <!-- Lighter shade of green -->
+							<td style="padding: 0.5rem;">
+								<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #3182CE; border-radius: 9999px; font-weight: bold;">TEST</span>
+							</td>
+							<td style="padding: 0.5rem;">Cy Ganderton
+							<td style="padding: 0.5rem;">Feb 2nd</td>
+							<td style="padding: 0.5rem;">
+								<svg data-src="https://unpkg.com/heroicons/20/solid/bell.svg" class="inline-block h-5 w-5"></svg>
+								180 USD
+							</td>
+						</tr>
+						<!-- Third row - Light Yellow -->
+						<tr style="background-color: #ffffcc;"> <!-- Lighter shade of yellow -->
+							<td style="padding: 0.5rem;">
+								<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #38A169; border-radius: 9999px; font-weight: bold;">TEST</span>
+							</td>
+							<td style="padding: 0.5rem;">Cy Ganderton</td>
+							<td style="padding: 0.5rem;">Feb 2nd</td>
+							<td style="padding: 0.5rem;">
+								<svg data-src="https://unpkg.com/heroicons/20/solid/calendar.svg" class="inline-block h-5 w-5"></svg>
+								180 USD
+							</td>
+						</tr>
+						<!-- Fourth row - Light Red -->
+						<tr style="background-color: #ffcccc;"> <!-- Lighter shade of red again -->
+							<td style="padding: 0.5rem;">
+								<span style="display: inline-block; padding: 0.1rem 0.75rem; color: white; background-color: #3182CE; border-radius: 9999px; font-weight: bold;">TEST</span>
+							</td>
+							<td style="padding: 0.5rem;">Cy Ganderton</td>
+							<td style="padding: 0.5rem;">Feb 2nd</td>
+							<td style="padding: 0.5rem;">
+								<svg data-src="https://unpkg.com/heroicons/20/solid/document-check.svg" class="inline-block h-5 w-5"></svg>
+								180 USD
+							</td>
+						</tr>
+					</tbody>
+					
+					
+						<!-- Repeat for other rows as needed -->
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		
+				<!-- card -->
+				<section class="card col-span-12 bg-base-100 shadow-sm xl:col-span-4 section-border">
+					<div class="card-body">
+						<h2 class="card-title">Sources</h2>
+						<div class="flex items-center gap-10">
+							<div class="grow">
+								<div class="flex items-center gap-2">
+									<span class="badge badge-xs bg-[#19D6BF]"></span>
+									Direct
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="badge badge-xs bg-[#A838FF]"></span>
+									Social
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="badge badge-xs bg-[#3C37FF]"></span>
+									Search
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="badge badge-xs bg-[#FFBD3C]"></span>
+									Email
+								</div>
+							</div>
+							<tc-pie
+								class="h-32 w-32 shrink-0 [--shape-color-1:#A838FF] [--shape-color-2:#19D6BF] [--shape-color-3:#3C37FF] [--shape-color-4:#FFBD3C]"
+								values="[35,68,22,16]"
+								shape-size="30"
+								shape-gap="6"></tc-pie>
+						</div>
+					</div>
+				</section>
+				<!-- /card -->
+				<!-- card -->
+				<section class="card col-span-12 bg-base-100 shadow-sm xl:col-span-4 section-border">
+					<div class="card-body pb-0">
+						<h2 class="card-title">19,000</h2>
+						<p>Downloads</p>
+					</div>
+					<tc-line
+						class="h-full w-full rounded-box [--area-opacity:.2] [--shape-color:#19D6BF]"
+						values="[6,5,2,11,13,16,14,14,14,15,18,16,18,15,19,16,20,18,12,14]"
+						min="0"></tc-line>
+				</section>
+				<!-- /card -->
+				<!-- card -->
+				<section class="card col-span-12 bg-base-100 shadow-sm xl:col-span-4 section-border">
+					<div class="card-body pb-0">
+						<h2 class="card-title">32,800</h2>
+						<p>Unique visitors</p>
+					</div>
+					<tc-line
+						class="h-full w-full rounded-box [--area-opacity:.2] [--shape-color:#A838FF]"
+						values="[12,10,12,4,13,16,14,10,12,11,17,18,16,17,20,14,15,13,12,14]"
+						min="0"></tc-line>
+				</section>
+				<!-- /card -->
+		
+
+				<!-- card -->
+				<section class="col-span-12 xl:col-span-4">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Product name</span>
+						</label>
+						<input type="text" placeholder="Type here" class="input input-bordered" />
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Category</span>
+						</label>
+						<select class="select select-bordered">
+							<option disabled selected>Pick</option>
+							<option>T-shirts</option>
+							<option>Dresses</option>
+							<option>Hats</option>
+							<option>Accessories</option>
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Size (cm)</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input type="text" placeholder="Width" class="input input-bordered w-1/2" />
+							×
+							<input type="text" placeholder="Height" class="input input-bordered w-1/2" />
+						</div>
+					</div>
+					<hr class="my-6 border-t-2 border-base-content/5" />
+					<div class="form-control">
+						<div class="label justify-start gap-2">
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/eye.svg"
+								class="h-4 w-4 text-base-content/30"></svg>
+							<span class="label-text text-xs font-bold text-base-content/50">
+								Choose product visibility
+							</span>
+						</div>
+					</div>
+					<div class="form-control">
+						<label class="label cursor-pointer">
+							<span class="label-text">Visible only for managers</span>
+							<input name="visibility" type="radio" class="radio radio-sm" checked />
+						</label>
+						<label class="label cursor-pointer">
+							<span class="label-text">Visible for all users</span>
+							<input name="visibility" type="radio" class="radio radio-sm" checked />
+						</label>
+					</div>
+				</section>
+				<!-- /card -->
+				<!-- card -->
+				<section class="card col-span-12 bg-base-100 shadow-sm xl:col-span-5 section-border">
+					<div class="card-body pb-0">
+						<h2 class="card-title">32,800</h2>
+						<p>From 84 countries</p>
+					</div>
+					<svg
+						data-src="https://unpkg.com/@svg-maps/world@1.0.1/world.svg"
+						class="m-4 fill-base-content/80">
+					</svg>
+				</section>
+				<!-- /card -->
+				<!-- card -->
+				<section class="card col-span-12 bg-base-100 shadow-sm xl:col-span-3">
+					<div class="p-6 pb-0 text-center text-xs font-bold text-base-content/60">
+						Recent events
+					</div>
+					<ul class="menu">
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?6" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>New User</b>
+									<br />
+									2 minutes ago
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?7" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>New product added</b>
+									<br />
+									1 hour ago
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?8" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>Database update</b>
+									<br />
+									1 hour ago
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?9" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>Newsletter sent</b>
+									<br />
+									2 hour ago
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?10" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>New User</b>
+									<br />
+									2 hours ago
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?11" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>New product added</b>
+									<br />
+									yesterday
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-6 rounded-full">
+										<img src="https://picsum.photos/80/80?12" />
+									</div>
+								</div>
+								<span class="text-xs">
+									<b>New product added</b>
+									<br />
+									yesterday
+								</span>
+							</a>
+						</li>
+					</ul>
+				</section>
+				<!-- /card -->
+
+				<!-- card -->
+				<section class="col-span-12 xl:col-span-4 section-border">
+					<label class="label">
+						<span class="label-text">Product management</span>
+					</label>
+					<ul class="flex flex-col gap-4 p-1">
+						<li class="flex items-start gap-4">
+							<img
+								class="h-14 w-14 shrink-0 rounded-btn"
+								width="56"
+								height="56"
+								src="https://picsum.photos/80/80?id=1"
+								alt="Product" />
+							<div class="flex grow flex-col gap-1">
+								<div class="text-sm">Portable fidget spinner</div>
+								<div class="text-xs text-base-content/50">Space Gray</div>
+								<div class="font-mono text-xs text-base-content/50">$299</div>
+							</div>
+							<div class="join justify-self-end bg-base-100">
+								<button class="btn btn-ghost join-item btn-xs">–</button>
+								<input class="input join-item input-ghost input-xs w-10 text-center" value="1" />
+								<button class="btn btn-ghost join-item btn-xs">+</button>
+							</div>
+						</li>
+						<li class="flex items-start gap-4">
+							<img
+								class="h-14 w-14 shrink-0 rounded-btn"
+								width="56"
+								height="56"
+								src="https://picsum.photos/80/80?id=2"
+								alt="Product" />
+							<div class="flex grow flex-col gap-1">
+								<div class="text-sm">Wooden VR holder</div>
+								<div class="text-xs text-base-content/50">Casual Red</div>
+								<div class="font-mono text-xs text-base-content/50">$199</div>
+							</div>
+							<div class="join justify-self-end bg-base-100">
+								<button class="btn btn-ghost join-item btn-xs">–</button>
+								<input class="input join-item input-ghost input-xs w-10 text-center" value="1" />
+								<button class="btn btn-ghost join-item btn-xs">+</button>
+							</div>
+						</li>
+						<li class="flex items-start gap-4">
+							<img
+								class="h-14 w-14 shrink-0 rounded-btn"
+								width="56"
+								height="56"
+								src="https://picsum.photos/80/80?id=3"
+								alt="Product" />
+							<div class="flex grow flex-col gap-1">
+								<div class="text-sm">Portable keychain</div>
+								<div class="text-xs text-base-content/50">Normal Yellow</div>
+								<div class="font-mono text-xs text-base-content/50">$299</div>
+							</div>
+							<div class="join justify-self-end bg-base-100">
+								<button class="btn btn-ghost join-item btn-xs">–</button>
+								<input class="input join-item input-ghost input-xs w-10 text-center" value="1" />
+								<button class="btn btn-ghost join-item btn-xs">+</button>
+							</div>
+						</li>
+					</ul>
+				</section>
+				<!-- /card -->
+				<!-- card -->
+				<section class="col-span-12 xl:col-span-4 section-border">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Product name</span>
+						</label>
+						<input type="text" placeholder="Type here" class="input input-bordered" />
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Category</span>
+						</label>
+						<select class="select select-bordered">
+							<option disabled selected>Pick</option>
+							<option>T-shirts</option>
+							<option>Dresses</option>
+							<option>Hats</option>
+							<option>Accessories</option>
+						</select>
+					</div>
+
+					<div class="form-control">
+						<label class="label cursor-pointer">
+							<span class="label-text">Public</span>
+							<input type="checkbox" class="toggle toggle-sm" checked />
+						</label>
+					</div>
+					<div class="form-control">
+						<label class="label cursor-pointer">
+							<span class="label-text">Featured product</span>
+							<input type="checkbox" class="toggle toggle-sm" checked />
+						</label>
+					</div>
+				</section>
+				<!-- /card -->
+				<!-- card -->
+				<section class="col-span-12 xl:col-span-4">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Size (cm)</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<input type="text" placeholder="Width" class="input input-bordered w-1/2" />
+							×
+							<input type="text" placeholder="Height" class="input input-bordered w-1/2" />
+						</div>
+					</div>
+					<div class="form-control">
+						<div class="py-4 text-xs text-base-content/70">
+							Set a audience range for this product.
+							<br />
+							This is optional
+						</div>
+						<input type="range" min="0" max="100" value="25" class="range range-xs" step="25" />
+						<div class="flex w-full justify-between px-2 py-2 text-xs">
+							<span>0</span>
+							<span>25</span>
+							<span>50</span>
+							<span>75</span>
+							<span>100</span>
+						</div>
+					</div>
+					<div class="form-control">
+						<div class="flex gap-4 py-4">
+							<button class="btn btn-outline">Save draft</button>
+							<button class="btn btn-primary grow">Save and publish</button>
+						</div>
+					</div>
+				</section>
+				<!-- /card -->
+
+				
+				<!-- card -->
+				<section class="card col-span-12 bg-base-100 xl:col-span-5 section-border">
+					<form class="card-body" action="">
+						<div class="alert alert-success">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6 shrink-0 stroke-current"
+								fill="none"
+								viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							<span>Your payment was successful</span>
+						</div>
+						<div class="form-control">
+							<label class="label">
+								<span class="label-text">Card Number</span>
+							</label>
+							<input
+								type="text"
+								class="input input-bordered font-mono"
+								pattern="\d{16}"
+								title="16 digits card number"
+								minlength="16"
+								maxlength="16"
+								required />
+						</div>
+						<div class="grid grid-cols-2 gap-2">
+							<div class="form-control">
+								<label class="label">
+									<span class="label-text">CVV</span>
+								</label>
+								<input
+									type="text"
+									placeholder="XXX"
+									pattern="\d{3,4}"
+									title="3 or 4 digits CVV number"
+									minlength="3"
+									maxlength="4"
+									required
+									class="input input-bordered text-center font-mono" />
+							</div>
+							<div class="form-control">
+								<label class="label">
+									<span class="label-text">Expiration date</span>
+								</label>
+								<div class="input input-bordered grid grid-cols-2 gap-2">
+									<input
+										placeholder="MM"
+										type="text"
+										pattern="\d{2}"
+										title="2 digits month number"
+										minlength="2"
+										maxlength="2"
+										class="text-center font-mono"
+										required />
+									<input
+										placeholder="YY"
+										type="text"
+										pattern="\d{2}"
+										title="2 digits year number"
+										minlength="2"
+										maxlength="2"
+										class="text-center font-mono"
+										required />
+								</div>
+							</div>
+						</div>
+						<div class="form-control">
+							<label class="label">
+								<span class="label-text">Name</span>
+							</label>
+							<input type="text" class="input input-bordered" />
+						</div>
+						<div class="form-control mt-4 gap-4">
+							<label class="flex cursor-pointer gap-4">
+								<input type="checkbox" class="checkbox checkbox-sm" checked />
+								<span class="label-text">Save my card information for future payments</span>
+							</label>
+							<label class="flex cursor-pointer gap-4">
+								<input required type="checkbox" class="checkbox checkbox-sm" checked />
+								<span class="label-text">Accept terms of use and privac policy</span>
+							</label>
+						</div>
+						<div class="form-control">
+							<div class="flex items-end py-4">
+								<button class="btn btn-primary grow">Confirm Payment</button>
+							</div>
+						</div>
+					</form>
+				</section>
+				<!-- /card -->
+				
+				<!-- card -->
+				<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm xl:col-span-7 section-border">
+					<div class="card-body grow-0">
+						<div class="flex justify-between gap-2">
+							<h2 class="card-title grow">
+								<a class="link-hover link">Recent user transactions</a>
+							</h2>
+							<button class="btn btn-sm">See all users</button>
+							<button class="btn btn-sm">Settings</button>
+						</div>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table table-zebra">
+							<tbody>
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?1"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Hart Hagerty</div>
+												<div class="text-xs opacity-50">United States</div>
+											</div>
+										</div>
+									</td>
+									<td>Feb 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_3">
+											<path
+												fill-rule="evenodd"
+												d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z"
+												clip-rule="evenodd"></path>
+										</svg>
+										180 USD
+									</td>
+								</tr>
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?2"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Brice Swyre</div>
+												<div class="text-xs opacity-50">China</div>
+											</div>
+										</div>
+									</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_4">
+											<path
+												fill-rule="evenodd"
+												d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z"
+												clip-rule="evenodd"></path>
+										</svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?3"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Marjy Ferencz</div>
+												<div class="text-xs opacity-50">Russia</div>
+											</div>
+										</div>
+									</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_5">
+											<path
+												fill-rule="evenodd"
+												d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z"
+												clip-rule="evenodd"></path>
+										</svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?4"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Yancy Tear</div>
+												<div class="text-xs opacity-50">Brazil</div>
+											</div>
+										</div>
+									</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-down-right.svg"
+											class="inline-block h-5 w-5 text-error"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_6">
+											<path
+												d="M6.28 5.22a.75.75 0 00-1.06 1.06l7.22 7.22H6.75a.75.75 0 000 1.5h7.5a.747.747 0 00.75-.75v-7.5a.75.75 0 00-1.5 0v5.69L6.28 5.22z"></path>
+										</svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?5"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Marjy Ferencz</div>
+												<div class="text-xs opacity-50">Russia</div>
+											</div>
+										</div>
+									</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-down-right.svg"
+											class="inline-block h-5 w-5 text-error"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_7">
+											<path
+												d="M6.28 5.22a.75.75 0 00-1.06 1.06l7.22 7.22H6.75a.75.75 0 000 1.5h7.5a.747.747 0 00.75-.75v-7.5a.75.75 0 00-1.5 0v5.69L6.28 5.22z"></path>
+										</svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?6"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Hart Hagerty</div>
+												<div class="text-xs opacity-50">United States</div>
+											</div>
+										</div>
+									</td>
+									<td>Jul 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_8">
+											<path
+												fill-rule="evenodd"
+												d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z"
+												clip-rule="evenodd"></path>
+										</svg>
+										320 USD
+									</td>
+								</tr>
+
+								<tr>
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>
+									<td>
+										<div class="flex items-center gap-4">
+											<div class="avatar">
+												<div class="mask mask-squircle h-10 w-10">
+													<img
+														src="https://picsum.photos/80/80?1"
+														alt="Avatar Tailwind CSS Component" />
+												</div>
+											</div>
+											<div>
+												<div class="text-sm font-bold">Hart Hagerty</div>
+												<div class="text-xs opacity-50">United States</div>
+											</div>
+										</div>
+									</td>
+									<td>Feb 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											aria-hidden="true"
+											data-id="svg-loader_3">
+											<path
+												fill-rule="evenodd"
+												d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z"
+												clip-rule="evenodd"></path>
+										</svg>
+										180 USD
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+				<!-- /card -->
+			</div>
+
+
+			<!-- NavSection: Dashboard - Subsection: Activity Feed-->
+			<div id="dashboardactivityfeedSection" class="grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-12 lg:p-10 anchor-target">
+				<div class="col-span-12 lg:col-span-6"> <!-- Adjust col-span as needed -->
+					<h2 class="text-xl font-bold">
+						<span style="color: grey;">Demo Workspace ></span> Dashboard > Activity Feed
+					</h2>
+				</div>
+			
+			<!-- card -->
+			<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm section-border">
+			<div class="overflow-x-auto">
+				<table class="table table-xs">
+				  <thead>
+					<tr>
+					  <th></th> 
+					  <th>User</th> 
+					  <th>Date/Time</th> 
+					  <th>Form Name</th> 
+					  <th>Facility</th> 
+					  <th>Room</th> 
+					</tr>
+				  </thead> 
+				  <tbody>
+					<tr>
+						<th>1</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+						<td>X01</td> 
+					</tr>
+					<tr>
+						<th>2</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>3</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+						<td>X01</td> 
+					</tr>
+					<tr>
+						<th>4</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+						<td>X01</td> 
+					</tr>
+					<tr>
+						<th>5</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>1</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+						<td>X01</td> 
+					</tr>
+					<tr>
+						<th>6</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>7</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+						<td>X01</td> 
+					</tr>
+					<tr>
+						<th>1</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>8</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+						<td>X01</td> 
+					</tr>
+					<tr>
+						<th>9</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>10</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>11</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>12</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>13</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>14</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>15</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>16</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+					<tr>
+						<th>17</th> 
+						<td>achau</td> 
+						<td>2023-12-31 13:45:32</td> 
+						<td>X-ray Room Check + Inventory</td> 
+						<td>Foothills</td> 
+					  	<td>X01</td> 
+					</tr>
+				  </tbody> 
+				  <tfoot>
+					<tr>
+						<th></th> 
+						<th>User</th> 
+						<th>Date/Time</th> 
+						<th>Form Name</th> 
+						<th>Facility</th> 
+						<th>Room</th> 
+					</tr>
+				  </tfoot>
+				</table>
+			  </div>
+			  <div id="table-pagination">
+				<span id="row-info">Rows per page:</span>
+				<select class="btn btn-sm" id="rows-per-page">
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="100">100</option>
+				</select>
+				<span id="table-info"></span>
+				<button class="btn btn-sm" id="prev-page">&lt;</button>
+				<button class="btn btn-sm" id="next-page">&gt;</button>
+			</div>
+			Alfred: Please note pagination doesn't work outside of the first table.
+		
+			</section>
+			</div>
+			<!-- /card -->
+		
+		
+
+			
+			<!-- NavSection: Dashboard - Subsection: Compliance Status -->
+			<div id="dashboardcompliancestatusSection" class="grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-12 lg:p-10 anchor-target">
+				<div class="col-span-12 lg:col-span-6"> <!-- Adjust col-span as needed -->
+					<h2 class="text-xl font-bold">
+						<span style="color: grey;">Demo Workspace ></span> Dashboard > Compliance Status
+					</h2>
+				</div>
+			
+			<!-- card -->
+			<h2 class="card-title">
+				<a class="link-hover link">Transactions</a>
+			</h2>
+			<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm section-border">
+				<div class="stats shadow">
+					<div class="stat">
+					  <div class="stat-figure text-primary">
+						<svg data-src="https://unpkg.com/heroicons/20/solid/document-check.svg" class="inline-block h-10 w-10"></svg>
+					</div>
+					  <div class="stat-title"># Checklists this year</div>
+					  <div class="stat-value text-primary">25</div>
+					  <div class="stat-desc">21% more than last month</div>
+					</div>
+					
+					<div class="stat">
+					  <div class="stat-figure text-secondary">
+						<svg data-src="https://unpkg.com/heroicons/20/solid/clock.svg" class="inline-block h-10 w-10"></svg>
+					</div>
+					  <div class="stat-title">Time to Compliance</div>
+					  <div class="stat-value text-secondary">2.8 days</div>
+					  <div class="stat-desc">11% slower than last month</div>
+					</div>
+					
+					<div class="stat">
+					  <div class="stat-figure text-secondary">
+						<div class="avatar online">
+						  <div class="w-12 rounded-full">
+							<img src="https://picsum.photos/80/80?5" />
+						  </div>
+						</div>
+					  </div>
+					  <div class="stat-value">100%</div>
+					  <div class="stat-title">Compliance Rate</div>
+					  <div class="stat-desc text-secondary">6 tasks remaining this month</div>
+					</div>
+					
+				  </div>
+		</section>
+		</div>
+		<!-- /card -->			
+		
+
+
+						
+
+
+			<!-- NavSection: Checklists - Subsection: Create/Manage -->
+			<div id="checklistscreatemanageSection" class="grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-12 lg:p-10 anchor-target">
+				<div class="col-span-12 lg:col-span-6"> <!-- Adjust col-span as needed -->
+					<h2 class="text-xl font-bold">
+						<span style="color: grey;">Demo Workspace ></span> Checklists > Create/Manage
+					</h2>
+				</div>
+
+				<!-- card -->
+				<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm section-border">
+					<div class="card-body grow-0">
+						<div class="flex justify-between gap-2">
+							<h2 class="card-title grow">
+								<a class="link-hover link">Recent Checklists</a>
+							</h2>
+							<button class="btn btn-sm">Add</button>
+							<button class="btn btn-sm">Edit</button>
+							<button class="btn btn-sm">Delete</button>
+						</div>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table table-zebra force-black-text">
+							<thead class="force-black-text">
+								<tr style="background-color: #E2E8F0;">
+									<th style="padding: 0.5rem;">Seleaact</th>
+									<th style="padding: 0.5rem;">Status</th>
+									<th style="padding: 0.5rem;" colspan="1">Form Name</th>
+									<th style="padding: 0.5rem;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+									<th style="padding: 0.5rem;">Region</th>
+									<th style="padding: 0.5rem;">Facility</th>
+									<th style="padding: 0.5rem;">Department</th>
+									<td style="padding: 0.5rem;">Room</td>
+									<td style="padding: 0.5rem;">Frequency</td>
+									<th style="padding: 0.5rem;">Submissions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<!-- Data Row -->								
+								<tr style="background-color: #cef2d9;">
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>									<td style="padding: 0.5rem;">
+									  <span style="display: inline-block; padding: 0.25rem 0.75rem; color: white; background-color: #38A169; border-radius: 9999px; font-weight: bold;">COMPLETE</span>
+									</td>
+									<td style="padding: 0.5rem;" colspan="2">X-ray Room Check + Inventory</td>
+									<!-- Remove one of the other data cells to keep the total count consistent -->
+									<td style="padding: 0.5rem;">Calgary North</td>
+									<td style="padding: 0.5rem;">Foothills</td>
+									<td style="padding: 0.5rem;">X-ray</td>
+									<td style="padding: 0.5rem;">X01</td>
+									<td style="padding: 0.5rem; font-weight: 650;">Daily</td>
+									<td>
+									  <a href="#" class="action-link" title="Show Previous Submissions">...</a>
+									</td>
+								  </tr>
+								<tr style="background-color: #f0e4cb;">
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>									<td style="padding: 0.5rem;">
+										<span style="display: inline-block; padding: 0.25rem 0.75rem; color: white; background-color: #D69E2E; border-radius: 9999px; font-weight: bold;">PRIORITY</span>
+										
+									</td>
+									<td style="padding: 0.5rem;" colspan="2">Ultrasound Facility Check</td>
+									<td style="padding: 0.5rem;">Calgary North</td>
+									<td style="padding: 0.5rem;">Foothills</td>
+									<td style="padding: 0.5rem;">Ultrasound</td>
+									<td style="padding: 0.5rem;">U02</td>
+									<td style="padding: 0.5rem; font-weight: 650;">Weekly</td>
+									<td>
+										<a href="#" class="action-link" title="Show Previous Submissions">...</a>
+									</td>
+								</tr>
+								<tr style="background-color: #eac2c2;">
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>									<td style="padding: 0.5rem;">
+										<span style="display: inline-block; padding: 0.25rem 0.75rem; color: white; background-color: #C53030; border-radius: 9999px; font-weight: bold;">URGENT</span>
+									</td>
+									<td style="padding: 0.5rem;" colspan="2">Facility Safety Review</td>
+									<td style="padding: 0.5rem;">Calgary North</td>
+									<td style="padding: 0.5rem;">Peter Lougheed</td>
+									<td style="padding: 0.5rem;">Emergency Department</td>
+									<td style="padding: 0.5rem;">Emergency</td>
+									<td style="padding: 0.5rem; font-weight: 650;">Monthly</td>
+									<td>
+										<a href="#" class="action-link" title="Show Previous Submissions">...</a>
+									</td>
+								</tr>
+								<tr style="background-color: #b8cee3;">
+									<td class="w-0"><input type="checkbox" class="checkbox" /></td>									<td style="padding: 0.5rem;">
+										<span style="display: inline-block; padding: 0.25rem 0.75rem; color: white; background-color: #3182CE; border-radius: 9999px; font-weight: bold;">AD HOC</span>
+									</td>
+									<td style="padding: 0.5rem;" colspan="2">Ultrasound Probe Disinfection</td>
+									<td style="padding: 0.5rem;">Calgary South</td>
+									<td style="padding: 0.5rem;">Rockyview Hospital</td>
+									<td style="padding: 0.5rem;">Ultrasound</td>
+									<td style="padding: 0.5rem;">Reprocessing</td>
+									<td style="padding: 0.5rem; font-weight: 650;">Ad Hoc</td>
+									<td>
+										<a href="#" class="action-link" title="Show Previous Submissions">...</a>
+									</td>
+								</tr>
+																<!-- Repeat for other rows as needed -->
+							</tbody>
+						</table>
+					</div>
+				</section>
+				</div>
+				<!-- /card -->
+
+
+
+			<!-- NavSection: Checklists - Subsection: Checklist Assignment -->
+			<div id="checklistschecklistassignmentSection" class="grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-12 lg:p-10 anchor-target">
+				<div class="col-span-12 lg:col-span-6"> <!-- Adjust col-span as needed -->
+					<h2 class="text-xl font-bold">
+						<span style="color: grey;">Demo Workspace ></span> Checklists > Checklist Assignment
+					</h2>
+				</div>
+
+				<!-- card -->
+				<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm section-border">
+					<div class="card-body grow-0">
+						<h2 class="card-title">
+							<a class="link-hover link">Checklist Assignment</a>
+						</h2>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table table-zebra">
+							<tbody>
+								<tr>
+									<td>Users Section</td>
+									<td>Feb 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"></svg>
+										180 USD
+									</td>
+								</tr>
+								<tr>
+									<td>Hart Hagerty</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"></svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td>Jim Hagerty</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"></svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td>Hart Hagerty</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-down-right.svg"
+											class="inline-block h-5 w-5 text-error"></svg>
+										250 USD
+									</td>
+								</tr>
+								<tr>
+									<td>Hart Hagerty</td>
+									<td>Sep 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-down-right.svg"
+											class="inline-block h-5 w-5 text-error"></svg>
+										250 USD									</td>
+								</tr>
+								<tr>
+									<td>Brice Swyre</td>
+									<td>Jul 2nd</td>
+									<td>
+										<svg
+											data-src="https://unpkg.com/heroicons/20/solid/arrow-up-right.svg"
+											class="inline-block h-5 w-5 text-success"></svg>
+										320 USD
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+				<!-- /card -->
+
+
+			<!-- card -->
+			<section class="card col-span-12 bg-primary text-primary-content shadow-sm xl:col-span-6 section-border">
+				<div class="card-body pb-0">
+					<h2 class="card-title">21,500 USD</h2>
+					<a class="link-hover link text-xs">Revenue report →</a>
+				</div>
+				<tc-column
+					class="h-full w-full p-4 pt-0 [--shape-color:oklch(var(--pc))]"
+					values="[12,10,12,4,13,16,14,10,12,11,17,18,16,17,20,14,15,13,12,14]"
+					min="0"
+					shape-radius="4"
+					shape-gap="4"></tc-column>
+			</section>
+			</div>
+			<!-- /card -->
+
+
+
+			<!-- NavSection: Checklists - Subsection: Checklist Assignment -->
+			<div id="checklistschecklisthistorySection" class="grid grid-cols-12 grid-rows-[min-content] gap-y-12 p-4 lg:gap-x-12 lg:p-10 anchor-target">
+				<div class="col-span-12 lg:col-span-6"> <!-- Adjust col-span as needed -->
+					<h2 class="text-xl font-bold">
+						<span style="color: grey;">Demo Workspace ></span> Checklists > Checklist History
+					</h2>
+				</div>
+
+				<!-- card -->
+				<section class="card col-span-12 overflow-hidden bg-base-100 shadow-sm section-border">
+					<div class="card-body grow-0">
+						<h2 class="card-title">
+							<a class="link-hover link">Checklist History</a>
+						</h2>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table">
+						  <!-- head -->
+						  <thead>
+							<tr>
+							  <th></th>
+							  <th>Name</th>
+							  <th>Job</th>
+							  <th>Favorite Color</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<!-- row 1 -->
+							<tr class="bg-base-200">
+							  <th>1</th>
+							  <td>Cy Ganderton</td>
+							  <td>Quality Control Specialist</td>
+							  <td>Blue</td>
+							</tr>
+							<!-- row 2 -->
+							<tr>
+							  <th>2</th>
+							  <td>Hart Hagerty</td>
+							  <td>Desktop Support Technician</td>
+							  <td>Purple</td>
+							</tr>
+							<!-- row 3 -->
+							<tr>
+							  <th>3</th>
+							  <td>Brice Swyre</td>
+							  <td>Tax Accountant</td>
+							  <td>Red</td>
+							</tr>
+						  </tbody>
+						</table>
+					  </div>
+				</section>
+				</div>
+				
+				<!-- /card -->
+
+
+
+
+
+
+						
+			</div>
+		<!-- Footer Section -->
+		<footer class="footer footer-center p-4 bg-base-300 text-base-content">
+			<aside>
+				<p>Copyright © 2023 - All right reserved by <strong>ClinicChecklist.com</strong></p>
+			</aside>
+			</footer>		
+		<!-- /Footer Section -->
+	</main>
+
+
+
+
+
+
+
+
+
+
+
+		
+		<!-- /content -->
+			<!-- sidebar menu -->
+			<aside class="drawer-side z-10">
+			<label for="my-drawer" class="drawer-overlay"></label>
+			<!-- sidebar menu -->
+			<nav class="flex min-h-screen w-80 flex-col gap-2 overflow-y-auto bg-base-100 px-8 py-8">
+				<!-- Logo for desktop view -->
+				<div class="hidden lg:block mx-auto">
+					<img id="sidebar-logo" src="images/logo/clinic_checklist_logo.png" alt="Clinic Checklist Logo" style="width: 250px;">
+				</div>
+				<ul class="menu">
+					<li style="padding-left: 2px; font-size: 1rem;"><strong>DEMO WORKSPACE</strong></li>
+
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/home.svg"
+									class="h-5 w-5"></svg>
+								Dashboard
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Dashboard is a collection of charts and tables that can be customized.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Summary</a></li>
+								<li><a href="#dashboardactivityfeedSection" id="dashboardactivityfeedLink" onclick="showSection('dashboardactivityfeedSection', event)">Activity Feed</a></li>
+								<li><a href="#dashboardcompliancestatusSection" id="dashboardcompliancestatusLink" onclick="showSection('dashboardcompliancestatusSection', event)">Compliance Status</a></li>
+							</ul>
+						</details>
+					</li>			
+					
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/check-circle.svg"
+									class="h-5 w-5"></svg>
+								Checklists
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Manage all your Checklist/Forms/Logs here</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#checklistscreatemanageSection" id="checklistscreatemanageLink" onclick="showSection('checklistscreatemanageSection', event)">Create/Manage</a></li>
+								<li><a href="#checklistschecklistassignmentSection" id="checklistschecklistassignmentLink" onclick="showSection('checklistschecklistassignmentSection', event)">Checklist Assignment</a></li>
+								<li><a href="#checklistschecklisthistorySection" id="checklistschecklisthistoryLink" onclick="showSection('checklistschecklisthistorySection', event)">Checklist History</a></li>
+							</ul>
+						</details>
+					</li>			
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/book-open.svg"
+									class="h-5 w-5"></svg>
+								Staff Academy
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Training and compliance portal for all staff</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#checklistschecklisthistorySection" id="checklistschecklisthistoryLink" onclick="showSection('checklistschecklisthistorySection', event)">Compliance Tracking</a></li>
+								<li><a href="#checklistschecklistassignmentSection" id="checklistschecklistassignmentLink" onclick="showSection('checklistschecklistassignmentSection', event)">Training Module</a></li>
+								<li><a href="#checklistschecklisthistorySection" id="checklistschecklisthistoryLink" onclick="showSection('checklistschecklisthistorySection', event)">Quiz + Assessment</a></li>
+								<li><a href="#checklistschecklisthistorySection" id="checklistschecklisthistoryLink" onclick="showSection('checklistschecklisthistorySection', event)">Reminder + Notification</a></li>
+							</ul>
+						</details>
+					</li>	
+
+
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/rectangle-stack.svg"
+									class="h-5 w-5"></svg>
+								Rooms + Equipment
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Manage your rooms and equipment.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Rooms Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Equipment Tracking</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Maintenance Schedules</a></li>
+							</ul>
+						</details>
+					</li>			
+					
+					<li>
+						<a href="#usersSection" id="usersLink" onclick="showSection('usersSection', event)">
+							<svg data-src="https://unpkg.com/heroicons/20/solid/chart-bar.svg" class="h-5 w-5"></svg>
+							Analytics + Reports
+						</a>
+					</li>
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/user.svg"
+									class="h-5 w-5"></svg>
+								User Management
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Customize and assign user accounts, including roles, permissions, and access levels.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">User Profiles</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Role Assignment</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Activity Logs</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Group Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Access Control</a></li>
+							</ul>
+						</details>
+					</li>		
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/rectangle-group.svg"
+									class="h-5 w-5"></svg>
+								Inventory + Resources
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Manage your supply room, POs and inventory.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Supply Room Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Inventory Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Inventory Audits</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Vendor Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Inventory Audits</a></li>
+							</ul>
+						</details>
+					</li>
+				
+					<li>
+						<a>
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/squares-plus.svg"
+								class="h-5 w-5"></svg>
+								Template Library
+						</a>
+					</li>
+				
+					<li>
+						<a>
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/chart-pie.svg"
+								class="h-5 w-5"></svg>
+							Stats
+						</a>
+					</li>
+					
+					<li>
+						<a>
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/document-text.svg"
+								class="h-5 w-5"></svg>
+							Logs
+						</a>
+					</li>
+					<li>
+						<a>
+							<svg data-src="https://unpkg.com/heroicons/20/solid/inbox.svg" class="h-5 w-5"></svg>
+							Messages
+							<span class="badge badge-info badge-sm">12</span>
+						</a>
+					</li>
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/adjustments-vertical.svg"
+									class="h-5 w-5"></svg>
+								Settings
+							</summary>
+							<ul>
+								<li><a>General</a></li>
+								<li><a>Themes</a></li>
+								<li><a>Routes</a></li>
+								<li><a>Comments</a></li>
+								<li><a>Media</a></li>
+								<li><a>Roles</a></li>
+								<li><a>Merchants</a></li>
+								<li>
+									<a>Tools</a>
+									<ul>
+										<li><a>Files</a></li>
+										<li><a>Scripts</a></li>
+										<li><a>Suggestions</a></li>
+									</ul>
+								</li>
+								<li><a>Databases</a></li>
+								<li><a>Gateways</a></li>
+								<li><a>Plugins</a></li>
+								<li><a>API</a></li>
+								<li><a>Support</a></li>
+							</ul>
+						</details>
+					</li>
+					<li></li>
+									<!-- theme switcher -->
+					<li>
+						
+					<label for="theme-switcher" class="flex items-center gap-1" style="font-size: .8rem;">
+					Night Mode
+					<input id="theme-switcher" type="checkbox" onchange="toggleTheme()" class="toggle toggle-sm" />
+					</label>
+					</li>
+
+					<li></li>
+					
+					<li style="padding-left: 2px; font-size: .8rem;"><strong>DEMO WORKSPACE</strong></li>
+					
+					<li>
+						<a href="#Switch-Clinic1" id="usersLink" onclick="showSection('usersSection', event)">
+							<svg data-src="https://unpkg.com/heroicons/20/solid/building-office.svg" class="h-5 w-5"></svg>
+							Peter Lougheed
+						</a>
+					</li>				
+
+					<li>
+						<a href="#Switch-Clinic2" id="usersLink" onclick="showSection('usersSection', event)">
+							<svg data-src="https://unpkg.com/heroicons/20/solid/building-office.svg" class="h-5 w-5"></svg>
+							Rockyview Hospital
+						</a>
+					</li>
+
+					<li>
+						<a href="#Switch-Clinic3" id="usersLink" onclick="showSection('usersSection', event)">
+							<svg data-src="https://unpkg.com/heroicons/20/solid/building-office.svg" class="h-5 w-5"></svg>
+							Foothills
+						</a>
+					</li>
+
+				</ul>
+			</nav>
+			<!-- /sidebar menu -->
+		</aside>
+	</body>
+
+	<div class="bottom-banner">
+		<img src="images/userlogo/kinetix_logo_transparent.png" alt="Logo" class="bottom-logo">
+	</div>
+	  
+	<!-- /drawer -->
+</html>

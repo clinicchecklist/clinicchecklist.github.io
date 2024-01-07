@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handwashing Audit Compliance Training</title>
+    <link rel="stylesheet" href="cchandwashing-training.css">
+    <style>
+        #invalid-code-message {
+            color: red;
+            font-size: 30px;
+            display: none; /* Initially hidden */
+        }
+
+        button {
+            background-color: var(--secondary-color); /* Vibrant button color */
+        }
+
+        header {
+        padding: 20px; /* Add padding to the header */
+        text-align: center; /* Center-align header content */
+    }
+
+    /* Media query for smaller screens (e.g., mobile devices) */
+    @media screen and (max-width: 768px) {
+        header {
+            padding: 10px; /* Reduce padding for smaller screens */
+        }
+    }
+
+    body {
+        padding-top: 10rem; /* Add padding to the top of the body */
+    }
+
+    /* Media query for smaller screens (e.g., mobile devices) */
+    @media screen and (max-width: 768px) {
+        body {
+            padding-top: 12rem; /* Reduce padding for smaller screens */
+        }
+    }
+    
+    </style>
+</head>
+<body>
+    <header>
+        <img src="/images/logos/ClinicChecklist_Logo_Color.png" alt="Clinic Logo" style="max-width: 250px;">
+        <h1>Handwashing Audit Compliance Training</h1>
+        <p>Welcome to our interactive handwashing training module.</p>
+    </header>
+
+
+    <script>
+        function isValidCode(code) {
+            // Simple Luhn Algorithm Check
+            var sum = 0;
+            var alt = false;
+            for (var i = code.length - 1; i >= 0; i--) {
+                var num = parseInt(code.charAt(i), 10);
+                if (alt) {
+                    num *= 2;
+                    if (num > 9) {
+                        num -= 9;
+                    }
+                }
+                sum += num;
+                alt = !alt;
+            }
+            return (sum % 10) === 0;
+        }
+    
+        function getQueryParam(param, queryString) {
+            var searchParams = new URLSearchParams(queryString);
+            return searchParams.get(param);
+        }
+    
+        window.onload = function() {
+            var fullUrl = window.location.href;
+            var queryPart = fullUrl.split('?')[1]; // Get the part after the first '?'
+            var relevantPart = queryPart.split('?')[0]; // Get the part before the second '?'
+    
+            var userEmail = getQueryParam("email", relevantPart);
+            var authCode = getQueryParam("code", relevantPart);
+    
+            if (userEmail && authCode && isValidCode(authCode)) {
+                document.getElementById('user-email').textContent = userEmail;
+                document.getElementById('code').textContent = authCode;
+                document.getElementById('valid-code-message').style.display = 'block'; // Show success message
+            } else {
+                document.getElementById('invalid-code-message').style.display = 'block'; // Show error message
+            }
+        };
+    </script>
+    
+    
+<div class="main-content">
+
+    <section id="welcome">
+        <b><div>Welcome, <span id="user-email"></span>.  AuthCode: <span id="code"></span></div></b>
+        <div id="invalid-code-message">Invalid Auth Code. Please contact your facility administrator.</div>
+
+        <div id="valid-code-message" style="display: none; color: green; font-size: 30px;">
+            Authentication Successful!
+        </div>
+        
+        <i>Please note that your email + AuthCode has been brought through to Authenticate.  </i>
+        <br><br>
+        <p>This training is crucial for maintaining our compliance with CPSBC's accreditation standards.</p>
+    </section>
+    
+
+    <section id="training-module">
+        <section id="training-module">
+            <h3>Training Module: Provincial Hand Hygiene Module (mandatory)</h3>
+            <br><p><strong>Completion requirements</strong></p>
+            <ul>
+                <li>Currently, it is estimated that one out of every nine patients admitted to a hospital gets an infection.</li>
+                <li>Getting an infection will increase the length of patient stay and use of Personal Protective Equipment (PPE) thereby increasing workload and cost of providing patient care.</li>
+                <li>Patients placed on precautions often feel left out by health care workers.</li>
+                <li>In Canada, 220,000 patients get infections while using health care services each year. Of these, 8,000 die.</li>
+            </ul>
+            
+            <br><p><strong>Purpose of hand hygiene</strong></p>
+            <p>Transmission occurs when hands move from:</p>
+            <ul>
+                <li>Healthcare worker to patient</li>
+                <li>Healthcare worker to environment (surroundings)</li>
+                <li>Patient to environment (surrounding)</li>
+            </ul>
+            <p>Hand hygiene works because it reduces the number of illness causing germs on your hands.  This help to break the chain of infection.</p>
+                  
+            <br><p><strong>Why is hand hygiene so important?</strong></p>
+            <p>Hand hygiene is one of the best ways to break the links in the chain of infection:</p>
+            <ol>
+                <li>Infectious agent - illness causing germ.</li>
+                <li>Reservoir (where the germ likes to hang out) - people, equipment, water.</li>
+                <li>Portals of exit (how the germs get out of the reservoir) - coughing/sneezing, vomit, diarrhea, skin.</li>
+                <li>Means of transmission (how the germs are able to move from one place to another) - direct touch of people or objects, droplets of a cough/sneeze, into vomit or diarrhea.</li>
+                <li>Portal of entry - broken skin, touching the lining of your eyes, nose, and mouth, eating/swallowing, breathing in, having a contaminated device put into your body.</li>
+                <li>Susceptible host - people who are already ill with another condition, have had surgery, taking medication that strains the protective system of their body (immune system).</li>
+            </ol>
+            <br><p><strong>Alcohol-based hand rub (ABHR) and plain soap and water</strong></p>
+            <p>ABHR and plain soap and water are hand-hygiene agents available for patient care.</p>
+            <ul>
+                <li>Use soap and water when hands are visibly soiled or contaminated, after contact with a patient with diarrhea or their surroundings, and whenever you feel that your hands have built up layers from the ABHR.</li>
+                <li>ABHR is quicker than using soap and water and may be easier to get because it does not require a sink with running water.</li>
+                <li>ABHR provides emollients that reduce skin irritation and is effective in reducing germs on hands.</li>
+            </ul>
+            <br><p><strong>Factors that can reduce the effectiveness of hand hygiene:</strong></p>
+            <ul>
+                <li>Artificial fingernails or extenders.</li>
+                <li>Long fingernails - keep nails short and clean (less than 3mm).</li>
+                <li>Chipped nail polish, as germs may become trapped along the edges.</li>
+                <li>Hand jewellery, which should be removed prior to performing hand hygiene.</li>
+            </ul>
+            <br><p><strong>Taking care of your hands:</strong></p>
+            <ul>
+                <li>Use only comfortably warm water. Hot water is not needed.</li>
+                <li>Use hand lotions or creams.</li>
+                <li>Do not use ABHR immediately after using soap and water.</li>
+                <li>Cover any open areas of skin with a water-tight dressing.</li>
+                <li>Report skin breakdown that concerns you to Workplace Health or your direct report.</li>
+            </ul>   
+            <br>
+<!-- Trigger/Open The Modal -->
+<a id="myBtn" href="#">Watch this video</a>
+
+            </div>     
+            <p><a href="https://www.youtube.com/watch?v=Q6dV9Vque04">Watch this video to see how microorganisms are mainly spread by health care workers’ hands.</a></p>
+        </section>
+        <div class="progress-bar">
+            <!-- Progress bar goes here -->
+        </div>
+    </section>
+
+    
+  <section id="quiz">
+    <style>
+        .quiz-container {
+            background: #f6f6f6; /* Set a background color for the entire quiz section */
+            padding: 20px; /* Add some padding to the quiz container */
+        }
+
+        .question-container {
+            border: 1px solid #ccc; /* Add a border to each question container */
+            padding: 15px; /* Add padding to create spacing */
+            margin-bottom: 15px; /* Add margin between questions */
+            background-color: #fff; /* Add a white background color to the question container */
+            border-radius: 10px; /* Add rounded corners to the question container */
+        }
+
+        .question-container:nth-child(odd) {
+            background-color: #f0f0f0; /* Slightly alternate background color for odd questions */
+        }
+
+        .question {
+            font-weight: bold; /* Make the question text bold */
+        }
+
+        .options {
+            display: flex;
+            align-items: center; /* Align options vertically in the center */
+        }
+
+        .option {
+            display: flex;
+            align-items: center; /* Align radio button and label vertically in the center */
+            margin-right: 20px; /* Add margin between options */
+        }
+
+        .option input[type="radio"] {
+            appearance: none; /* Remove default radio button style */
+            width: 25px; /* Set a fixed width for the square radio button */
+            height: 25px; /* Set a fixed height for the square radio button */
+            border: 2.5px solid #0079FF; /* Add a border to the radio button */
+            border-radius: 5px; /* Add rounded corners to the radio button */
+            margin-right: 10px; /* Add margin between radio button and label */
+            margin-top: 2px;
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
+
+        .option input[type="radio"]:checked {
+            background-color: #0079FF; /* Change background color when checked */
+        }
+
+        .option label {
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
+
+        .feedback {
+            font-style: italic; /* Make the feedback text italic */
+            color: #888; /* Change the color of the feedback text */
+        }
+    </style>
+         <div class="quiz-container">
+            <h2>Quiz</h2><br>
+            <div id="score" class="score">Correct Answers: 0</div>
+            <form id="quiz-form">
+                <div class="question">
+                    <p>Question 1: How long should you wash your hands?</p>
+                    <label class="option">
+                        <input type="radio" name="question1" value="20 seconds">
+                        20 seconds
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="question1" value="5 seconds">
+                        5 seconds
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="question1" value="45 seconds">
+                        45 seconds
+                    </label>
+                    <span class="feedback" id="feedback1"></span>
+                </div>
+                <div class="question">
+                    <p>Question 2: What temperature should the water be?</p>
+                    <label class="option">
+                        <input type="radio" name="question2" value="Cold">
+                        Cold
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="question2" value="Warm">
+                        Warm
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="question2" value="98˚C">
+                        98˚C
+                    </label>
+                </div>
+                <span class="feedback" id="feedback2"></span>
+                </div>
+                
+                
+                <!-- Add more questions as needed -->
+                <button type="button" id="submit-quiz" onclick="checkAnswers()" disabled>Submit Quiz</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="attestation" style="display: none;">
+        <h3>Attestation of Completion</h3>
+        <form id="attestation-form">
+            <input type="checkbox" id="attest" name="attest">
+            <label for="attest">I attest that I have completed and understood the training.</label>
+            <br><br><b>
+                <button id="attestation-button" onclick="submitAttestation()" disabled>Submit Attestation</button>
+                Please note that you will not be able to "Submit Attestation" unless all quiz answers are answered correctly, and/or until you have read and understood all explanations on incorrect asnwers.
+        </b>
+        </form>
+
+        
+    </section>
+</div>
+
+<!-- Hidden thank you section -->
+
+
+<div id="thank-you-section" style="display: none;">
+    <h2>Thank You for Participating!</h2>
+    <p>User Name: <span id="display-name"></span></p>
+    <p>Email: <span id="display-email"></span></p>
+    <p>Auth Code: <span id="display-auth-code"></span></p>
+</div>
+
+
+    <footer>
+        <p>&copy; ©2023 Kinetix Medicine.  All rights reserved.</p>
+        <!-- Add other footer elements here -->
+    </footer>
+
+    <script src="script.js"></script>
+
+    
+</body>
+</html>

@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+	<!-- Added default theme = dark theme (Alfred)-->
+	<html lang="en" data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<title>Clinic Checklist Dashboard</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="output.css" rel="stylesheet" />
+		
+		<style>
+			@media (prefers-color-scheme: dark) {
+    		tr {
+        	color: black;
+ 		   	}
+			}
+
+			.top-banner {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				z-index: 100; /* High z-index to keep it above other content */
+				background-color: #fff; /* Or any color you prefer */
+				/* Add more styles as needed (padding, box-shadow, etc.) */
+			}
+			.bottom-banner {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background-color: rgba(181, 226, 199, 0.7); 
+				z-index: 1000; /* Ensure it's above other content */
+				padding: 10px; /* Adjust as needed */
+				text-align: center; /* For centering the content */
+				box-shadow: 0 -2px 4px rgba(213, 123, 123, 0.2); /* Slight shadow for depth */
+				border-top: 1px solid rgba(221, 97, 97, 0.2); /* Subtle top border */
+				}
+
+			.bottom-logo {
+				max-height: 2rem; /* Maximum logo height */
+				width: auto; /* Maintain aspect ratio */
+				display: inline-block; /* Aligns image properly */
+				}
+
+			/* Adjust body padding to prevent content from being hidden */
+			body {
+				padding-top: 60px; /* Adjust this value based on the height of your top banner */
+				padding-bottom: 60px; /* Height of the bottom banner */
+			}
+
+			/* Add Padding and a Negative Margin to Your Sections */
+			.anchor-target {
+			padding-top: 100px; /* Height of your fixed header */
+			margin-top: -100px; /* Negative value of the above padding */
+			}
+
+			html {
+				font-size: 16px
+			}
+
+		
+		.action-link {
+				text-decoration: none;
+				color: rgb(7, 27, 251);
+			}
+
+			.action-link:hover {
+				cursor: pointer;
+				text-decoration: underline;
+			}
+
+			.table-menu-bar {
+				display: flex;
+				justify-content: space-between;
+				margin-bottom: 10px;
+			}
+
+			/* Style menu bar buttons */
+	
+			.table-menu-bar button {
+			}
+
+			.table-menu-bar {
+				display: flex;
+				justify-content: start;
+				gap: 10px;
+				margin-bottom: 20px;
+				background-color: #808080;
+  				border: none;
+  				border-radius: 5px;
+  				padding: 5px 20px;
+  				font-size: 16px;
+				font-weight: 400;
+				cursor: pointer;
+  				transition: background-color 0.3s ease;
+				}
+
+			.table-menu-bar button {
+				background-color: #f5f5f5;
+				color: rgb(0, 0, 0);
+				border: none;
+				border-radius: 5px;
+				padding: 3px 20px;
+				font-size: 16px;
+				cursor: pointer;
+				transition: background-color 0.3s ease;
+				}
+
+			.table-menu-bar button:hover {
+			background-color: #c9c9c9;
+			}
+
+			/* /Style menu bar buttons */
+
+			/* Hide the search bar on mobile devices */
+
+			@media (max-width: 768px) {
+				.flex.items-center.gap-5 .input-sm {
+					display: none;
+				}
+			}
+
+			/* Optional: Explicitly show the search bar on desktop */
+			@media (min-width: 769px) {
+				.flex.items-center.gap-5 .input-sm {
+					display: block; /* or 'flex' or 'inline-block', depending on your layout */
+				}
+			}
+			/* /Hide the search bar on mobile devices */
+
+			.force-black-text {
+			color: black !important;
+			}
+
+		</style>
+
+		<style>
+			#table-pagination {
+				text-align: right; /* Aligns content to the right */
+				padding-right: 1rem; /* Adds padding on the right */
+			}
+		</style>
+		
+		<!-- chart library -->
+		<script
+			type="module"
+			src="https://cdn.jsdelivr.net/npm/@weblogin/trendchart-elements@1.1.0/dist/index.js/+esm"
+			async>
+		</script>
+		<!-- svg loader for icons -->
+		<script
+			src="https://cdn.jsdelivr.net/npm/external-svg-loader@1.6.10/svg-loader.min.js"
+			async></script>
+		<!-- theme switcher script (Alfred)-->
+		
+		<script>
+			function toggleTheme() {
+			const html = document.documentElement;
+			const mainLogo = document.getElementById('logo');
+			const sidebarLogo = document.getElementById('sidebar-logo');
+
+			if (html.getAttribute('data-theme') === 'dark') {
+				html.setAttribute('data-theme', 'light');
+				mainLogo.src = 'images/logo/clinic_checklist_logo.png'; // Light theme main logo
+				sidebarLogo.src = 'images/logo/clinic_checklist_logo.png'; // Light theme sidebar logo
+			} else {
+				html.setAttribute('data-theme', 'dark');
+				mainLogo.src = 'images/logo/clinic_checklist_logo_dark.png'; // Dark theme main logo
+				sidebarLogo.src = 'images/logo/clinic_checklist_logo_dark.png'; // Dark theme sidebar logo
+			}
+		}
+		</script>
+
+		<script>
+			function showSection(sectionId) {
+				// Hide all sections first
+				const sections = document.querySelectorAll('.anchor-target');
+				sections.forEach(section => {
+					section.style.display = 'none';
+				});
+
+				// Show the selected section
+				const selectedSection = document.getElementById(sectionId);
+				if (selectedSection) {
+					selectedSection.style.display = 'grid';
+				}
+
+				// Remove active class from all menu items
+				document.querySelectorAll('.menu a').forEach(item => {
+					item.classList.remove('active');
+				});
+
+				// Add active class to the clicked menu item
+				event.currentTarget.classList.add('active');
+											
+			}
+		</script>
+
+		<script>
+			document.querySelectorAll('.info-icon').forEach(item => {
+			item.addEventListener('click', function() {
+				let tooltip = this.nextElementSibling;
+				if (tooltip.style.visibility === "visible") {
+					tooltip.style.visibility = "hidden";
+					tooltip.style.opacity = 0;
+				} else {
+					tooltip.style.visibility = "visible";
+					tooltip.style.opacity = 1;
+				}
+			});
+			});
+
+		</script>
+
+		<!-- Pagination for Tables-->
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				const rowsPerPageSelect = document.getElementById('rows-per-page');
+				const prevPageButton = document.getElementById('prev-page');
+				const nextPageButton = document.getElementById('next-page');
+				const tableInfo = document.getElementById('table-info');
+				const table = document.querySelector('table'); // Replace with your specific table selector
+				let currentPage = 1;
+				let rowsPerPage = parseInt(rowsPerPageSelect.value);
+
+				function updateTable() {
+					const allRows = table.querySelectorAll('tbody tr');
+					const totalRows = allRows.length;
+					const startRow = (currentPage - 1) * rowsPerPage;
+					const endRow = startRow + rowsPerPage;
+					const maxPage = Math.ceil(totalRows / rowsPerPage);
+
+					// Hide all rows
+					allRows.forEach(row => row.style.display = 'none');
+
+					// Show only rows for current page
+					for (let i = startRow; i < endRow && i < totalRows; i++) {
+						allRows[i].style.display = '';
+					}
+
+					// Update info text
+					tableInfo.textContent = `${startRow + 1}–${Math.min(endRow, totalRows)} of ${totalRows}`;
+
+					// Enable/disable buttons
+					prevPageButton.disabled = currentPage === 1;
+					nextPageButton.disabled = currentPage === maxPage;
+				}
+
+				// Event listeners
+				rowsPerPageSelect.addEventListener('change', function() {
+					rowsPerPage = parseInt(this.value);
+					currentPage = 1; // Reset to first page
+					updateTable();
+				});
+
+				prevPageButton.addEventListener('click', function() {
+					if (currentPage > 1) {
+						currentPage--;
+						updateTable();
+					}
+				});
+
+				nextPageButton.addEventListener('click', function() {
+					const totalRows = table.querySelectorAll('tbody tr').length;
+					if (currentPage < Math.ceil(totalRows / rowsPerPage)) {
+						currentPage++;
+						updateTable();
+					}
+				});
+
+				// Initial table update
+				updateTable();
+			});
+
+		</script>
+		<!-- /Pagination for Tables-->
+
+	</head>
+
+	
+		<!-- drawer -->
+		<body class="drawer min-h-screen bg-base-200 lg:drawer-open">
+	    
+	    <div class="top-banner">
+
+			Top Banner - don't know how to move the header bar into this and format properly.
+			
+
+			
+
+		</div>
+
+		<!-- Drawer Toggle -->
+		<input id="my-drawer" type="checkbox" class="drawer-toggle" />
+		<!-- dashboard content -->
+		<main class="drawer-content">
+					
+			<!-- header -->
+			<header class="col-span-12 flex justify-between lg:gap-4">
+				<!-- Mobile Menu Button and Logo -->
+				<div class="flex items-center gap-2">
+					<label for="my-drawer" class="btn btn-square btn-ghost drawer-button lg:hidden">
+						<svg data-src="https://unpkg.com/heroicons/20/solid/bars-3.svg" class="h-5 w-5"></svg>
+					</label>
+					<div class="grow lg:hidden">
+						<img id="logo" src="images/logo/clinic_checklist_logo.png" alt="Clinic Checklist Logo" style="width: 250px;">
+					</div>
+				</div>
+
+				<!-- Right Aligned Elements -->
+				<div class="flex items-center gap-5">
+    <div>
+        <input
+            type="text"
+            placeholder="Search"
+            class="input input-sm rounded-full max-sm:w-24" />
+    </div>
+				<!-- dropdown -->
+				<div class="dropdown dropdown-end z-10">
+					<div tabindex="0" class="btn btn-circle btn-ghost">
+						<div class="indicator">
+							<span class="badge indicator-item badge-error badge-xs"></span>
+							<svg data-src="https://unpkg.com/heroicons/20/solid/bell.svg" class="h-5 w-5"></svg>
+						</div>
+					</div>
+					<ul
+						tabindex="0"
+						class="menu dropdown-content mt-3 w-80 rounded-box bg-base-100 p-2 shadow-2xl">
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?1" />
+									</div>
+								</div>
+								<span>
+									<b>New message</b>
+									<br />
+									Alice: Hi, did you get my files?
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?2" />
+									</div>
+								</div>
+								<span>
+									<b>Reminder</b>
+									<br />
+									Your meeting is at 10am
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?3" />
+									</div>
+								</div>
+								<span>
+									<b>New payment</b>
+									<br />
+									Received $2500 from John Doe
+								</span>
+							</a>
+						</li>
+						<li>
+							<a class="gap-4">
+								<div class="avatar">
+									<div class="w-8 rounded-full">
+										<img src="https://picsum.photos/80/80?4" />
+									</div>
+								</div>
+								<span>
+									<b>New payment</b>
+									<br />
+									Received $1900 from Alice
+								</span>
+							</a>
+						</li>
+					</ul>
+				</div>
+				<!-- /dropdown -->
+				<!-- dropdown -->
+				<div class="dropdown-end dropdown z-10">
+					<div tabindex="0" class="avatar btn btn-circle btn-ghost">
+						<div class="w-10 rounded-full">
+							<img src="https://picsum.photos/80/80?5" />
+						</div>
+					</div>
+					<ul
+						tabindex="0"
+						class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow-2xl">
+						<li>
+							<a>Profile</a>
+						</li>
+						<li>
+							<a>
+								Inbox
+								<span class="badge badge-success">12</span>
+							</a>
+						</li>
+						<li><a>Settings</a></li>
+						<li><a>Logout</a></li>
+					</ul>
+				</div>
+				<!-- /dropdown -->
+			</header>
+			<!-- /header -->
+
+
+	
+
+
+
+
+
+						
+			</div>
+		<!-- Footer Section -->
+		<footer class="footer footer-center p-4 bg-base-300 text-base-content">
+			<aside>
+				<p>Copyright © 2023 - All right reserved by <strong>ClinicChecklist.com</strong></p>
+			</aside>
+			</footer>		
+		<!-- /Footer Section -->
+	</main>
+
+
+
+
+
+
+
+
+
+
+
+		
+		<!-- /content -->
+			<!-- sidebar menu -->
+			<aside class="drawer-side z-10">
+			<label for="my-drawer" class="drawer-overlay"></label>
+			<!-- sidebar menu -->
+			<nav class="flex min-h-screen w-80 flex-col gap-2 overflow-y-auto bg-base-100 px-8 py-8">
+				<!-- Logo for desktop view -->
+				<div class="hidden lg:block mx-auto">
+					<img id="sidebar-logo" src="images/logo/clinic_checklist_logo.png" alt="Clinic Checklist Logo" style="width: 250px;">
+				</div>
+				<ul class="menu">
+					<li style="padding-left: 2px; font-size: 1rem;"><strong>DEMO WORKSPACE</strong></li>
+
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/home.svg"
+									class="h-5 w-5"></svg>
+								Dashboard
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Dashboard is a collection of charts and tables that can be customized.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Summary</a></li>
+								<li><a href="#dashboardactivityfeedSection" id="dashboardactivityfeedLink" onclick="showSection('dashboardactivityfeedSection', event)">Activity Feed</a></li>
+								<li><a href="#dashboardcompliancestatusSection" id="dashboardcompliancestatusLink" onclick="showSection('dashboardcompliancestatusSection', event)">Compliance Status</a></li>
+							</ul>
+						</details>
+					</li>			
+					
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/check-circle.svg"
+									class="h-5 w-5"></svg>
+								Checklists
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Manage all your Checklist/Forms/Logs here</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#checklistscreatemanageSection" id="checklistscreatemanageLink" onclick="showSection('checklistscreatemanageSection', event)">Create/Manage</a></li>
+								<li><a href="#checklistschecklistassignmentSection" id="checklistschecklistassignmentLink" onclick="showSection('checklistschecklistassignmentSection', event)">Checklist Assignment</a></li>
+								<li><a href="#checklistschecklisthistorySection" id="checklistschecklisthistoryLink" onclick="showSection('checklistschecklisthistorySection', event)">Checklist History</a></li>
+							</ul>
+						</details>
+					</li>			
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/building-office.svg"
+									class="h-5 w-5"></svg>
+								Rooms + Equipment
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Manage your rooms and equipment.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Rooms Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Equipment Tracking</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Maintenance Schedules</a></li>
+							</ul>
+						</details>
+					</li>			
+					
+					<li>
+						<a href="#usersSection" id="usersLink" onclick="showSection('usersSection', event)">
+							<svg data-src="https://unpkg.com/heroicons/20/solid/chart-bar.svg" class="h-5 w-5"></svg>
+							Analytics + Reports
+						</a>
+					</li>
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/user.svg"
+									class="h-5 w-5"></svg>
+								User Management
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Customize and assign user accounts, including roles, permissions, and access levels.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">User Profiles</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Role Assignment</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Activity Logs</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Group Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Access Control</a></li>
+							</ul>
+						</details>
+					</li>		
+
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/rectangle-group.svg"
+									class="h-5 w-5"></svg>
+								Inventory + Resources
+								<div class="info-container" tabindex="0"> <!-- tabindex for focus -->
+									<i class="info-icon">i</i>
+									<div class="tooltip">Manage your supply room, POs and inventory.</div>
+								</div>
+							</summary>
+							<ul>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Supply Room Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Inventory Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Inventory Audits</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Vendor Management</a></li>
+								<li><a href="#dashboardSection" id="dashboardLink" onclick="showSection('dashboardSection', event)">Inventory Audits</a></li>
+							</ul>
+						</details>
+					</li>
+				
+					<li>
+						<a>
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/squares-plus.svg"
+								class="h-5 w-5"></svg>
+								Template Library
+						</a>
+					</li>
+				
+					<li>
+						<a>
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/chart-pie.svg"
+								class="h-5 w-5"></svg>
+							Stats
+						</a>
+					</li>
+					
+					<li>
+						<a>
+							<svg
+								data-src="https://unpkg.com/heroicons/20/solid/document-text.svg"
+								class="h-5 w-5"></svg>
+							Logs
+						</a>
+					</li>
+					<li>
+						<a>
+							<svg data-src="https://unpkg.com/heroicons/20/solid/inbox.svg" class="h-5 w-5"></svg>
+							Messages
+							<span class="badge badge-info badge-sm">12</span>
+						</a>
+					</li>
+					<li>
+						<details>
+							<summary>
+								<svg
+									data-src="https://unpkg.com/heroicons/20/solid/adjustments-vertical.svg"
+									class="h-5 w-5"></svg>
+								Settings
+							</summary>
+							<ul>
+								<li><a>General</a></li>
+								<li><a>Themes</a></li>
+								<li><a>Routes</a></li>
+								<li><a>Comments</a></li>
+								<li><a>Media</a></li>
+								<li><a>Roles</a></li>
+								<li><a>Merchants</a></li>
+								<li>
+									<a>Tools</a>
+									<ul>
+										<li><a>Files</a></li>
+										<li><a>Scripts</a></li>
+										<li><a>Suggestions</a></li>
+									</ul>
+								</li>
+								<li><a>Databases</a></li>
+								<li><a>Gateways</a></li>
+								<li><a>Plugins</a></li>
+								<li><a>API</a></li>
+								<li><a>Support</a></li>
+							</ul>
+						</details>
+					</li>
+					<li></li>
+									<!-- theme switcher -->
+					<li>
+						
+					<label for="theme-switcher" class="flex items-center gap-1" style="font-size: .8rem;">
+					Night Mode
+					<input id="theme-switcher" type="checkbox" onchange="toggleTheme()" class="toggle toggle-sm" />
+					</label>
+					</li>
+				
+				</ul>
+			</nav>
+			<!-- /sidebar menu -->
+		</aside>
+	</body>
+
+	<div class="bottom-banner">
+		<img src="images/userlogo/kinetix_logo_transparent.png" alt="Logo" class="bottom-logo">
+	</div>
+	  
+	<!-- /drawer -->
+</html>
