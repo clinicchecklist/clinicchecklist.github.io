@@ -187,6 +187,33 @@ note: reduce spacing in turbo mode.
 });
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to toggle the visibility of the info container
+    function toggleInfoContainer(element) {
+        // Find the closest parent .checklist-item of the clicked element
+        const checklistItem = element.closest('.checklist-item');
+        // Toggle the visibility of the .info-container within the clicked .checklist-item
+        const infoContainer = checklistItem.querySelector('.info-container');
+        // Toggle a class that indicates whether the info container is visible or not
+        infoContainer.classList.toggle('is-visible');
+    }
+
+    // Attach click event listener to each checklist item title
+    document.querySelectorAll('.checklist-item__title').forEach(item => {
+        item.addEventListener('click', function() {
+            toggleInfoContainer(this);
+        });
+    });
+
+    // Attach click event listener to each expand button
+    document.querySelectorAll('.checklist-item__expand').forEach(button => {
+        button.addEventListener('click', function() {
+            toggleInfoContainer(this);
+        });
+    });
+});
+
+
   </script>
 
   

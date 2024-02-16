@@ -351,14 +351,20 @@ input[type=checkbox]:checked ~ .checklist-item__title {
   transform: rotate(0);
   background: 0 0;
 }
+
 .info-container {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  font-size: 1.1em;
-  line-height: 1.4;
+  transition: max-height 0.3s ease, padding 0.3s ease;
   overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.3s ease-in;
+  max-height: 0; /* Initially hide the info container */
+  padding: 0 20px; /* Adjust padding as needed */
 }
+
+/* When the info-container is visible */
+.info-container.is-visible {
+  max-height: 500px; /* Set to the maximum height you expect your content to be */
+  padding: 20px; /* Adjust padding to match visible state */
+}
+
 .info-container ul {
   padding-left: 26px;
   list-style-type: disc;
