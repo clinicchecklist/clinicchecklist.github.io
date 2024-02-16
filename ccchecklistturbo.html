@@ -139,79 +139,76 @@ note: reduce spacing in turbo mode.
   
   
   <script>
-   document.addEventListener('DOMContentLoaded', function() {
-  // ... existing code ...
-
-  const questions = document.querySelectorAll('.checklist-item__title');
-  let currentQuestionIndex = 0;
-
-  document.getElementById('turboModeButton').onclick = function() {
-    document.getElementById('turboModeOverlay').style.display = 'block';
-    showNextQuestion(0);
-  };
-
-  document.getElementById('closeOverlayButton').onclick = function() {
-    document.getElementById('turboModeOverlay').style.display = 'none';
-  };
-
-  document.getElementById('yesButton').onclick = function() {
-    recordAnswer(true);
-    showNextQuestion(currentQuestionIndex + 1);
-  };
-
-  document.getElementById('noButton').onclick = function() {
-    recordAnswer(false);
-    showNextQuestion(currentQuestionIndex + 1);
-  };
-
-  function showNextQuestion(index) {
-    if (index >= questions.length) {
-      document.getElementById('turboModeOverlay').style.display = 'none';
-      return;
-    }
-    document.getElementById('overlayQuestion').textContent = questions[index].textContent;
-    currentQuestionIndex = index;
-  }
-
-  function recordAnswer(answer) {
-    let correspondingCheckbox = questions[currentQuestionIndex].previousElementSibling.previousElementSibling;
-    correspondingCheckbox.checked = answer;
-    updateProgress(); // Call this function to update the progress tally
-}
-
-  function updateProgress() {
-      const totalCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]').length;
-      const checkedCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
-      document.querySelector('.progress__count').textContent = `${checkedCheckboxes}/${totalCheckboxes}`;
-  }
-});
-
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to toggle the visibility of the info container
+    // Existing code for SUPER FAST Mode functionality
+    const questions = document.querySelectorAll('.checklist-item__title');
+    let currentQuestionIndex = 0;
+
+    document.getElementById('turboModeButton').onclick = function() {
+        document.getElementById('turboModeOverlay').style.display = 'block';
+        showNextQuestion(0);
+    };
+
+    document.getElementById('closeOverlayButton').onclick = function() {
+        document.getElementById('turboModeOverlay').style.display = 'none';
+    };
+
+    document.getElementById('yesButton').onclick = function() {
+        recordAnswer(true);
+        showNextQuestion(currentQuestionIndex + 1);
+    };
+
+    document.getElementById('noButton').onclick = function() {
+        recordAnswer(false);
+        showNextQuestion(currentQuestionIndex + 1);
+    };
+
+    function showNextQuestion(index) {
+        if (index >= questions.length) {
+            document.getElementById('turboModeOverlay').style.display = 'none';
+            return;
+        }
+        document.getElementById('overlayQuestion').textContent = questions[index].textContent;
+        currentQuestionIndex = index;
+    }
+
+    function recordAnswer(answer) {
+        let correspondingCheckbox = questions[currentQuestionIndex].previousElementSibling.previousElementSibling;
+        correspondingCheckbox.checked = answer;
+        updateProgress(); // This function updates the progress tally
+    }
+
+    // Function to update the progress counter
+    function updateProgress() {
+        const totalCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]').length;
+        const checkedCheckboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+        document.querySelector('.progress__count').textContent = `${checkedCheckboxes}/${totalCheckboxes}`;
+    }
+
+    // Attach change event listeners to all checkboxes for updating the progress
+    document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateProgress);
+    });
+
+    // Code for toggling info containers
     function toggleInfoContainer(element) {
-        // Find the closest parent .checklist-item of the clicked element
         const checklistItem = element.closest('.checklist-item');
-        // Toggle the visibility of the .info-container within the clicked .checklist-item
         const infoContainer = checklistItem.querySelector('.info-container');
-        // Toggle a class that indicates whether the info container is visible or not
         infoContainer.classList.toggle('is-visible');
     }
 
-    // Attach click event listener to each checklist item title
-    document.querySelectorAll('.checklist-item__title').forEach(item => {
-        item.addEventListener('click', function() {
+    document.querySelectorAll('.checklist-item__title, .checklist-item__expand').forEach(element => {
+        element.addEventListener('click', function() {
             toggleInfoContainer(this);
         });
     });
 
-    // Attach click event listener to each expand button
-    document.querySelectorAll('.checklist-item__expand').forEach(button => {
-        button.addEventListener('click', function() {
-            toggleInfoContainer(this);
-        });
-    });
+    // Initial call to set the progress on page load
+    updateProgress();
 });
+
+
 
 
   </script>
